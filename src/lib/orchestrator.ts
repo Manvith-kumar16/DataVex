@@ -115,7 +115,7 @@ export interface OrchestratorOptions {
 
 // ─── Pipeline Stage Definition ─────────────────────────────────────────────────
 
-type AgentFn = (memory: SharedMemory) => SharedMemory;
+type AgentFn = (memory: SharedMemory) => SharedMemory | Promise<SharedMemory>;
 
 interface PipelineStage {
     /** Human label for this stage (for logging). */
@@ -394,14 +394,9 @@ export class AgentExecutionEngine {
         agentFn: AgentFn,
         memory: SharedMemory,
     ): Promise<SharedMemory> {
-        const executionPromise = new Promise<SharedMemory>((resolve, reject) => {
-            try {
-                const result = agentFn(memory);
-                resolve(result);
-            } catch (err) {
-                reject(err);
-            }
-        });
+        // Promise.resolve() handles both sync SharedMemory and async Promise<SharedMemory>
+        const executionPromise = Promise.resolve()
+            .then(() => agentFn(memory));
 
         if (!this.opts.agentTimeoutMs) return executionPromise;
 

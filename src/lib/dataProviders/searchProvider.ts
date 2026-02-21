@@ -1,57 +1,96 @@
-export async function searchCompany(domain: string) {
-    const apiKey = process.env.TAVILY_API_KEY || "tvly-placeholder";
+// src/lib/dataProviders/searchProvider.ts
+//
+// Tavily Search Provider — fetches company intelligence via 4 targeted queries.
+//
+// Auth: Authorization: Bearer header (Tavily API requirement).
+// Env:  VITE_TAVILY_API_KEY in .env file (Vite browser app — no process.env).
+//
+// On missing key or API failure: returns [] so callers fall back gracefully.
 
+export interface SearchResult {
+    title: string;
+    url: string;
+    snippet: string;
+    relevanceScore: number;
+}
+
+const TAVILY_ENDPOINT = 'https://api.tavily.com/search';
+
+/**
+ * Build the 4 targeted query strings for a given domain.
+ * Targeting specific topics maximises keyword-hit rate for signal extraction.
+ */
+function buildQueries(domain: string): string[] {
+    return [
+        `${domain} funding investment raised series`,
+        `${domain} hiring engineers careers jobs`,
+        `${domain} tech stack kubernetes devops aws`,
+        `${domain} expansion new office global growth market`,
+    ];
+}
+
+/**
+ * Run a single Tavily query and return normalised SearchResult[].
+ * Returns [] on any network/parse failure so callers stay clean.
+ */
+async function runQuery(query: string, apiKey: string): Promise<SearchResult[]> {
     try {
-        const response = await fetch("https://api.tavily.com/search", {
-            method: "POST",
+        const response = await fetch(TAVILY_ENDPOINT, {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                api_key: apiKey,
-                query: `company ${domain} about us and news`,
-                search_depth: "basic",
-                include_answer: true,
+                query,
+                search_depth: 'advanced',
+                max_results: 5,
             }),
         });
 
         if (!response.ok) {
-            throw new Error(`API returned ${response.status}`);
+            console.warn(`[searchProvider] Tavily returned ${response.status} for query "${query}"`);
+            return [];
         }
 
         const data = await response.json();
 
-        // Map actual results to match criteria
-        const newsResults = (data.results || []).slice(0, 3).map((item: any) => ({
-            title: item.title,
-            url: item.url,
-            snippet: item.content,
+        return (data.results ?? []).map((item: Record<string, unknown>) => ({
+            title: String(item.title ?? ''),
+            url: String(item.url ?? ''),
+            snippet: String(item.content ?? item.snippet ?? ''),
+            relevanceScore: typeof item.score === 'number' ? item.score : 0.5,
         }));
-
-        return {
-            homepageText: data.answer || `Homepage info for ${domain}`,
-            aboutText: `Found information about ${domain}: ${data.answer}`,
-            newsResults: newsResults,
-        };
-    } catch (error) {
-        console.warn(`Search API failed for ${domain}, falling back to mock data:`, error);
-
-        // Fallback block if the real fetch fails
-        return {
-            homepageText: `Mock homepage string for ${domain}. We provide cutting-edge solutions to industry challenges.`,
-            aboutText: `Mock about text for ${domain}. The company has been revolutionizing the sector since its inception.`,
-            newsResults: [
-                {
-                    title: `Exciting new product from ${domain} launched`,
-                    url: `https://${domain}/news/launch-event`,
-                    snippet: `The company has revealed a much-anticipated product line focusing on efficiency.`,
-                },
-                {
-                    title: `${domain} leadership speaks at industry conference`,
-                    url: `https://mock-news.com/article/${domain}-talk`,
-                    snippet: `Executives shared key insights on the future of technology and adoption trends.`,
-                }
-            ]
-        };
+    } catch (err) {
+        console.warn(`[searchProvider] Query failed for "${query}":`, err);
+        return [];
     }
+}
+
+/**
+ * Fetches company intelligence signals from Tavily for a given domain.
+ *
+ * Runs 4 targeted queries sequentially to respect rate limits.
+ * Returns an empty array if VITE_TAVILY_API_KEY is not set.
+ *
+ * @param domain - Company domain, e.g. "stripe.com"
+ */
+export async function fetchCompanySignals(domain: string): Promise<SearchResult[]> {
+    // Vite exposes env vars via import.meta.env — not process.env
+    const apiKey = import.meta.env.VITE_TAVILY_API_KEY as string | undefined;
+
+    if (!apiKey || apiKey.trim() === '') {
+        console.warn('[searchProvider] VITE_TAVILY_API_KEY not set — skipping live fetch');
+        return [];
+    }
+
+    const queries = buildQueries(domain);
+    const allResults: SearchResult[] = [];
+
+    for (const query of queries) {
+        const results = await runQuery(query, apiKey);
+        allResults.push(...results);
+    }
+
+    return allResults;
 }

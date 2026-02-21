@@ -4,6 +4,9 @@ import type {
   DebateData, VerdictData, OutreachData,
   EvidenceLevel, SignalWithEvidence, ConfidenceData, Scenario
 } from '@/types/analysis';
+import { fetchCompanySignals } from '@/lib/dataProviders/searchProvider';
+import { extractSignals } from '@/lib/dataProviders/signalExtractor';
+import { getFromCache, setInCache } from '@/lib/analysisCache';
 
 function hash(s: string): number {
   let h = 0;
@@ -239,8 +242,46 @@ export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[
   const steps: AgentStep[] = AGENT_STEPS.map(agent => ({ agent, status: 'pending' as const, progress: 0 }));
   const updateStep = (idx: number, status: AgentStep['status'], progress: number) => { steps[idx] = { ...steps[idx], status, progress }; onProgress([...steps]); };
 
-  updateStep(0, 'running', 0); await delay(600 + Math.random() * 400);
-  const research = researchAgent(cleanDomain, seed); updateStep(0, 'complete', 100);
+  updateStep(0, 'running', 0);
+
+  // ── Live Tavily fetch (if API key configured) ──────────────────────────────
+  let liveResearch: Partial<ResearchData> = {};
+  const CACHE_KEY = `tavily:${cleanDomain}`;
+
+  const cached = getFromCache<Partial<ResearchData>>(CACHE_KEY);
+  if (cached) {
+    liveResearch = cached;
+  } else {
+    try {
+      const searchResults = await fetchCompanySignals(cleanDomain);
+      if (searchResults.length > 0) {
+        const extracted = extractSignals(searchResults);
+        liveResearch = {
+          fundingSignals: extracted.fundingSignals,
+          hiringSignals: extracted.hiringSignals,
+          techClues: extracted.techClues,
+          expansionSignals: extracted.expansionSignals,
+          rawSources: extracted.rawSources,
+        };
+        setInCache(CACHE_KEY, liveResearch);
+      }
+    } catch (err) {
+      console.warn('[agents] Tavily fetch failed, using mock signals:', err);
+    }
+  }
+
+  // ── Research Agent (mock baseline, merged with live data) ─────────────────
+  const mockResearch = researchAgent(cleanDomain, seed);
+  const research: ResearchData = {
+    ...mockResearch,
+    // Merge live signals: prefer real data; fall back to mock when empty
+    fundingSignals: liveResearch.fundingSignals?.length ? liveResearch.fundingSignals : mockResearch.fundingSignals,
+    hiringSignals: liveResearch.hiringSignals?.length ? liveResearch.hiringSignals : mockResearch.hiringSignals,
+    techClues: liveResearch.techClues?.length ? liveResearch.techClues : mockResearch.techClues,
+    expansionSignals: liveResearch.expansionSignals?.length ? liveResearch.expansionSignals : mockResearch.expansionSignals,
+    rawSources: liveResearch.rawSources?.length ? liveResearch.rawSources : mockResearch.rawSources,
+  };
+  updateStep(0, 'complete', 100);
 
   updateStep(1, 'running', 0); await delay(400 + Math.random() * 300);
   const signals = signalAgent(research, seed); updateStep(1, 'complete', 100);
