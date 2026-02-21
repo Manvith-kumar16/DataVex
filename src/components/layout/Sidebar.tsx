@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows } from 'lucide-react';
+import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows, Sun, Moon } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -10,6 +11,7 @@ const navItems = [
 
 export function Sidebar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,11 +41,10 @@ export function Sidebar() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all ${
-                isActive
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all ${isActive
                   ? 'bg-primary/10 text-accent border-glow'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              }`}
+                }`}
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -53,6 +54,19 @@ export function Sidebar() {
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-all group"
+        >
+          <div className="relative h-4 w-4">
+            <Sun className={`h-4 w-4 absolute transition-all duration-300 ${theme === 'light' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
+            <Moon className={`h-4 w-4 absolute transition-all duration-300 ${theme === 'dark' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-75'}`} />
+          </div>
+          <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+        </button>
+
         <div className="flex items-center gap-2.5 px-3 py-2">
           <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
             {user?.name?.[0]?.toUpperCase() || '?'}
@@ -76,6 +90,7 @@ export function Sidebar() {
 
 export function MobileHeader() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   return (
@@ -85,6 +100,15 @@ export function MobileHeader() {
         <span className="font-display font-bold text-sm">VexIntel</span>
       </div>
       <div className="flex items-center gap-3">
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="relative h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+        >
+          <Sun className={`h-4 w-4 absolute transition-all duration-300 ${theme === 'light' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
+          <Moon className={`h-4 w-4 absolute transition-all duration-300 ${theme === 'dark' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-75'}`} />
+        </button>
         <button onClick={() => navigate('/dashboard')} className="text-xs text-muted-foreground hover:text-foreground">
           <LayoutDashboard className="h-4 w-4" />
         </button>
