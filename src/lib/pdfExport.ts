@@ -1,83 +1,159 @@
-import type { AnalysisResult } from '@/types/analysis';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { Signal, Evidence } from "./utils";
 
-export function exportReport(result: AnalysisResult) {
-  const { research, score, verdict, technicalFit, timing, market, debate, outreach, confidence } = result;
-  const vc = verdict.action === 'Pursue' ? 'pursue' : verdict.action === 'Nurture' ? 'nurture' : 'skip';
+// Make sure the structure of report matches the expected mock structure
+export async function exportAnalysisPDF(report: any) {
+  const doc = new jsPDF({
+    unit: 'mm',
+    format: 'a4',
+    orientation: 'portrait'
+  });
 
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>VexIntel Report — ${research.companyName}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0b12;color:#d1d5e0;font-family:'Inter',sans-serif;padding:48px;max-width:800px;margin:0 auto;font-size:13px;line-height:1.7}
-h1,h2,h3{font-family:'Space Grotesk',sans-serif}
-h1{color:#39e5c0;font-size:24px;margin-bottom:2px}
-.sub{color:#6b7090;font-size:12px;margin-bottom:32px}
-h2{font-size:16px;color:#d1d5e0;margin-top:28px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1c1e30}
-.box{background:#12131d;border:1px solid #1c1e30;border-radius:6px;padding:16px;margin:10px 0}
-.score{text-align:center;font-size:48px;font-weight:700;font-family:'Space Grotesk';color:#39e5c0}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
-.pursue{background:rgba(57,229,192,.1);color:#39e5c0}
-.nurture{background:rgba(234,179,8,.1);color:#eab308}
-.skip{background:rgba(239,68,68,.1);color:#ef4444}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#5f6375;margin-bottom:2px}
-.value{font-size:14px;font-weight:600}
-.sig{font-size:12px;color:#8b8fa3;padding:3px 0;border-bottom:1px solid #1c1e30}
-.footer{margin-top:40px;text-align:center;color:#3f4255;font-size:10px}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body>
-<h1>VexIntel Intelligence Report</h1>
-<p class="sub">${research.companyName} · ${research.domain} · ${research.industry} · ${new Date(result.timestamp).toLocaleDateString()}</p>
+  const marginX = 20;
+  let cursorY = 20;
+  const pageHeight = 297; // A4 height in mm
+  const lineHeight = 7;
 
-<div class="box" style="text-align:center">
-<div class="score">${score.leadScore}</div>
-<p style="color:#6b7090;font-size:12px">${score.category} Lead · ${confidence.overall}% Confidence</p>
-<span class="badge ${vc}" style="margin-top:8px;display:inline-block">${verdict.action}</span>
-</div>
+  // Helper to add text and manage page breaks
+  const addText = (text: string, x: number, y: number, options?: any) => {
+    if (y > pageHeight - 20) {
+      doc.addPage();
+      cursorY = 20;
+      y = cursorY;
+    }
+    doc.text(text, x, y, options);
+    return y + lineHeight;
+  };
 
-<h2>Why Now</h2>
-<div class="box"><p>${verdict.whyNow}</p></div>
+  // Helper for multiline text
+  const addMultiLineText = (text: string, x: number, y: number, maxWidth: number) => {
+    const splitText = doc.splitTextToSize(text, maxWidth);
+    const textHeight = splitText.length * doc.getLineHeight() * 0.3527777778; // px to mm approx
 
-<h2>Score Breakdown</h2>
-<div class="grid">
-<div class="box"><div class="label">Technical Fit</div><div class="value">${technicalFit.score}/10</div></div>
-<div class="box"><div class="label">Timing</div><div class="value">${timing.timingScore}/10</div></div>
-<div class="box"><div class="label">Budget</div><div class="value">${timing.budgetStrength}/10</div></div>
-<div class="box"><div class="label">Market</div><div class="value">${market.marketPositionScore}/10</div></div>
-</div>
+    if (y + textHeight > pageHeight - 20) {
+      doc.addPage();
+      cursorY = 20;
+      y = cursorY;
+    }
 
-<h2>Matched Services</h2>
-<div class="box">${technicalFit.matchedServices.map(s => `<div class="sig"><strong>${s.service}</strong> (${s.relevance}/10) — ${s.reason}</div>`).join('')}</div>
+    doc.text(splitText, x, y);
+    return y + (splitText.length * lineHeight);
+  };
 
-<h2>Risk Factors</h2>
-<div class="box">${verdict.riskFactors.map(r => `<div class="sig">⚠ ${r}</div>`).join('')}</div>
+  // --- A. Header ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  cursorY = addText("VexIntel Enterprise Intelligence Report", marginX, cursorY);
 
-<h2>Agent Debate</h2>
-<div class="box">
-${debate.entries.map(e => `<div class="sig"><strong>${e.agent}</strong> (${e.sentiment}, ${e.confidence}%): ${e.position}</div>`).join('')}
-<div style="margin-top:10px;color:#39e5c0;font-size:12px"><strong>Resolution:</strong> ${debate.resolution}</div>
-</div>
+  doc.setFontSize(16);
+  doc.setTextColor(100);
+  cursorY = addText(`Company: ${report.companyName || 'Unknown Domain'}`, marginX, cursorY);
 
-<h2>Confidence</h2>
-<div class="box">
-<div class="sig">Overall: ${confidence.overall}% · Data: ${confidence.dataCompleteness}% · Agreement: ${confidence.agentAgreement}% · Evidence: ${confidence.evidenceStrength}%</div>
-</div>
+  doc.setTextColor(0);
+  cursorY = addText(`Lead Score: ${report.leadScore || 'N/A'} / 100`, marginX, cursorY);
 
-<h2>Outreach</h2>
-<div class="box">
-<div class="label">Target</div><p style="margin-bottom:12px">${outreach.decisionMakerPersona}</p>
-<div class="label">Value Proposition</div><p>${outreach.valueProposition}</p>
-</div>
+  cursorY += 10; // Extra spacing
 
-<div class="footer">
-<p>Generated by VexIntel — Autonomous Enterprise Intelligence Engine</p>
-<p>Powered by DataVex · ${new Date().toISOString()}</p>
-</div>
-</body></html>`;
+  // --- B. Signals Summary ---
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  cursorY = addText("Signals Summary", marginX, cursorY);
+  cursorY += 5;
 
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const w = window.open(url, '_blank');
-  if (w) w.onload = () => setTimeout(() => w.print(), 600);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+
+  const signals: Signal[] = report.signals || [];
+
+  const fundingSignal = signals.find(s => s.category === "FUNDING");
+  cursorY = addText(`Funding: ${fundingSignal ? fundingSignal.value : 'No funding activity detected'}`, marginX, cursorY);
+
+  const hiringSignal = signals.find(s => s.category === "HIRING");
+  cursorY = addText(`Hiring: ${hiringSignal ? hiringSignal.value : 'Unknown hiring velocity'}`, marginX, cursorY);
+
+  const techSignal = signals.find(s => s.category === "TECH_STACK");
+  cursorY = addText(`Tech Stack: ${techSignal ? techSignal.value : 'No technologies detected'}`, marginX, cursorY);
+
+  cursorY += 10;
+
+  // --- C. Evidence Table (as a structured list for clean layout) ---
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  cursorY = addText("Evidence Record", marginX, cursorY);
+  cursorY += 5;
+
+  doc.setFontSize(10);
+
+  let allEvidence: Evidence[] = [];
+  signals.forEach(s => {
+    if (s.evidence && s.evidence.length > 0) {
+      allEvidence = allEvidence.concat(s.evidence);
+    }
+  });
+
+  if (allEvidence.length === 0) {
+    doc.setFont("helvetica", "italic");
+    cursorY = addText("No evidence collected during analysis.", marginX, cursorY);
+  } else {
+    allEvidence.forEach((ev, index) => {
+      doc.setFont("helvetica", "bold");
+      cursorY = addText(`${index + 1}. Claim: ${ev.claim}`, marginX, cursorY);
+
+      doc.setFont("helvetica", "normal");
+      cursorY = addText(`Source: ${ev.sourceUrl}`, marginX + 5, cursorY);
+      cursorY = addText(`Reliability: ${ev.reliability} (${ev.type})`, marginX + 5, cursorY);
+
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(80);
+      cursorY = addMultiLineText(`Snippet: "${ev.snippet}"`, marginX + 5, cursorY, 160);
+      doc.setTextColor(0);
+
+      cursorY += 5;
+    });
+  }
+
+  cursorY += 5;
+
+  // --- D. Risk Snapshot ---
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  cursorY = addText("Risk Snapshot", marginX, cursorY);
+  cursorY += 5;
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  const risks: string[] = report.risks || ["No major risks detected based on available intelligence."];
+  risks.forEach(risk => {
+    cursorY = addText(`• ${risk}`, marginX + 5, cursorY);
+  });
+
+  cursorY += 10;
+
+  // --- E. Outreach Email ---
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  cursorY = addText("Suggested Outreach", marginX, cursorY);
+  cursorY += 5;
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "italic");
+  const defaultEmail = `Hi Team,\n\nBased on recent ${fundingSignal ? 'funding' : 'activity'} and a ${hiringSignal ? hiringSignal.value.toLowerCase() : 'steady'} hiring velocity, we believe our platform can accelerate your technical goals.\n\nBest,\nVexIntel`;
+  cursorY = addMultiLineText(report.outreachEmail || defaultEmail, marginX, cursorY, 170);
+
+  cursorY += 10;
+
+  // --- F. Confidence Breakdown ---
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  cursorY = addText("Confidence Breakdown", marginX, cursorY);
+  cursorY += 5;
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  cursorY = addText(`Final Lead Score: ${report.leadScore || 'N/A'}`, marginX, cursorY);
+  cursorY = addText(`Overall Confidence: ${report.confidence || '65'}%`, marginX, cursorY);
+
+  // Save PDF
+  doc.save("VexIntel_Report.pdf");
 }

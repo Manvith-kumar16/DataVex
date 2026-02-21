@@ -5,6 +5,7 @@ import { Sidebar, MobileHeader } from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getRecentAnalyses } from '@/lib/agents';
+import { debounce } from '@/lib/utils';
 import type { AnalysisResult } from '@/types/analysis';
 import { Search, ArrowRight, Globe, Clock, TrendingUp, Zap, BarChart3, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -14,6 +15,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [domain, setDomain] = useState('');
   const [recent, setRecent] = useState<AnalysisResult[]>([]);
+
+  // We should debounce the input change, or debounce the analysis. The easiest is adding an intermediate state.
+  // Actually, standard usage of debounce on an input:
+  const setDomainDebounced = debounce((val: string) => setDomain(val), 300);
 
   useEffect(() => {
     setRecent(getRecentAnalyses());
@@ -54,8 +59,8 @@ export default function Dashboard() {
               <div className="relative flex-1">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  value={domain}
-                  onChange={e => setDomain(e.target.value)}
+                  defaultValue={domain}
+                  onChange={e => setDomainDebounced(e.target.value)}
                   placeholder="company.com"
                   className="pl-9 bg-secondary border-border h-11"
                 />
