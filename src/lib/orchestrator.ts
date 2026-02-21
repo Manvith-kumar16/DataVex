@@ -29,6 +29,7 @@ import {
     markExecutionComplete,
     updateConfidence,
 } from './memoryStore';
+import { checkEnterpriseIsolation, ENTERPRISE_MODE } from './enterpriseIsolation';
 
 import { researchAgent } from './agents/researchAgent';
 import { signalAgent } from './agents/signalAgent';
@@ -51,7 +52,8 @@ export type AgentName =
     | 'verdict'
     | 'debate'
     | 'alignment'
-    | 'confidence';
+    | 'confidence'
+    | 'orchestrator-isolation';
 
 export type ExecutionStatus = 'STARTED' | 'SUCCESS' | 'FAILED' | 'RETRYING';
 
@@ -205,7 +207,85 @@ export class AgentExecutionEngine {
         const wallStart = Date.now();
         const failedAgents: AgentName[] = [];
 
-        let memory = createMemory(domain);
+        const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
+
+        // ── ENTERPRISE ISOLATION GATE ──
+        const enterpriseCheck = checkEnterpriseIsolation(cleanDomain);
+        if (enterpriseCheck.isEnterprise && ENTERPRISE_MODE === 'hard-stop') {
+            // This block returns a hardcoded AnalysisResult, which is not OrchestratorResult.
+            // To maintain type consistency with the method's return type,
+            // we need to adapt the structure or assume a broader return type.
+            // For now, we'll return a minimal OrchestratorResult that indicates isolation.
+            // A full `AnalysisResult` type would need to be imported or defined.
+            console.warn(`[Orchestrator] Enterprise Isolation Policy triggered for ${cleanDomain}. Pipeline terminated.`);
+            const isolatedMemory: SharedMemory = {
+                id: crypto.randomUUID(),
+                domain: cleanDomain,
+                timestamp: new Date().toISOString(),
+                research: {
+                    industry: enterpriseCheck.category || 'Enterprise',
+                    companyName: cleanDomain.split('.')[0].charAt(0).toUpperCase() + cleanDomain.split('.')[0].slice(1),
+                    domain: cleanDomain,
+                    description: enterpriseCheck.explanation || 'Strategically self-sufficient organization.',
+                    employeeCount: 'Enterprise Scale',
+                    fundingSignals: [], hiringSignals: [], techClues: [], expansionSignals: [], rawSources: []
+                },
+                rawSignals: [],
+                structuredSignals: [],
+                agentOutputs: {
+                    verdict: {
+                        agentName: 'OrchestratorIsolation',
+                        score: 0,
+                        insights: [enterpriseCheck.explanation || 'Strategically self-sufficient organization.'],
+                        risks: ['Large Enterprise Exclusion Policy Triggered'],
+                        metadata: {
+                            action: 'Isolate',
+                            isIsolated: true,
+                            isolationCategory: enterpriseCheck.category,
+                            isolationExplanation: enterpriseCheck.explanation
+                        }
+                    },
+                    debate: {
+                        agentName: 'OrchestratorIsolation',
+                        score: 100,
+                        insights: ['Pipeline terminated: Strategic Enterprise Isolation.'],
+                        metadata: { entries: [], resolution: 'Pipeline terminated: Strategic Enterprise Isolation.', agreementPercent: 100 }
+                    },
+                },
+                scoreBreakdown: {
+                    technical: 0,
+                    financial: 0,
+                    market: 0,
+                    finalScore: 0,
+                    weights: { technical: 0.4, financial: 0.35, market: 0.25 }
+                },
+                debateLog: [],
+                confidenceMetrics: {
+                    overall: 100,
+                    breakdown: {
+                        dataCompleteness: 100,
+                        agentAgreement: 100,
+                        evidenceReliability: 100
+                    }
+                },
+                executionMeta: {
+                    startedAt: wallStart,
+                    retries: 0,
+                    attempts: { 'orchestrator-isolation': 1 },
+                    timings: { 'orchestrator-isolation': Date.now() - wallStart },
+                    completedAt: Date.now(),
+                }
+            };
+
+            return {
+                memory: isolatedMemory,
+                success: false,
+                failedAgents: ['orchestrator-isolation'],
+                elapsedMs: Date.now() - wallStart,
+            };
+        }
+
+        let memory = createMemory(cleanDomain);
 
         for (const stage of PIPELINE_STAGES) {
             const { memory: nextMemory, failed } = await this.runStage(stage, memory);
@@ -394,9 +474,8 @@ export class AgentExecutionEngine {
         agentFn: AgentFn,
         memory: SharedMemory,
     ): Promise<SharedMemory> {
-        // Promise.resolve() handles both sync SharedMemory and async Promise<SharedMemory>
-        const executionPromise = Promise.resolve()
-            .then(() => agentFn(memory));
+        // Use Promise.resolve().then() to wrap agent execution
+        const executionPromise = Promise.resolve().then(() => agentFn(memory));
 
         if (!this.opts.agentTimeoutMs) return executionPromise;
 

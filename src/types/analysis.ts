@@ -69,10 +69,13 @@ export interface DebateData {
 }
 
 export interface VerdictData {
-  action: 'Pursue' | 'Nurture' | 'Skip';
+  action: 'Pursue' | 'Nurture' | 'Skip' | 'Isolate';
   whyNow: string;
   riskFactors: string[];
   confidence: number;
+  isIsolated?: boolean;
+  isolationCategory?: string;
+  isolationExplanation?: string;
 }
 
 export interface OutreachData {
@@ -103,6 +106,8 @@ export interface ConfidenceData {
   dataCompleteness: number;
   agentAgreement: number;
   evidenceStrength: number;
+  alignmentIndex?: number;
+  alignmentRisk?: string;
 }
 
 export interface Scenario {
@@ -141,4 +146,79 @@ export interface AgentStep {
   agent: string;
   status: 'pending' | 'running' | 'complete' | 'error';
   progress: number;
+}
+
+export interface ScoreBreakdown {
+  technical: number;
+  financial: number;
+  market: number;
+  finalScore: number;
+  weights: {
+    technical: number;
+    financial: number;
+    market: number;
+  };
+}
+
+export interface AgentOutput {
+  agentName: string;
+  score: number;
+  insights: string[];
+  risks?: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface Signal {
+  id: string;
+  type: string;
+  content: string;
+  timestamp: string;
+  source: string;
+}
+
+export interface StructuredSignal {
+  id: string;
+  type: string;
+  signal: string;
+  confidence: number;
+}
+
+export interface DebateMessage {
+  agent: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface MemoryConfidenceData {
+  overall: number;
+  breakdown: {
+    dataCompleteness: number;
+    agentAgreement: number;
+    evidenceReliability: number;
+  };
+  alignmentIndex?: number;
+  alignmentRisk?: string;
+}
+
+export interface ExecutionMeta {
+  startedAt: number;
+  completedAt?: number;
+  retries: number;
+  timings?: Record<string, number>;
+  attempts?: Record<string, number>;
+}
+
+export interface SharedMemory {
+  id?: string;
+  domain: string;
+  timestamp?: string;
+  research?: ResearchData;
+  rawSignals: Signal[];
+  structuredSignals: StructuredSignal[];
+  agentOutputs: Record<string, AgentOutput>;
+  scoreBreakdown: ScoreBreakdown;
+  debateLog: DebateMessage[];
+  confidenceMetrics: MemoryConfidenceData;
+  executionMeta?: ExecutionMeta;
+  confidence?: ConfidenceData;
 }

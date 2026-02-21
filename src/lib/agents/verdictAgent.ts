@@ -21,7 +21,7 @@
 //   • Returns updated SharedMemory
 
 import type { SharedMemory, ScoreBreakdown } from '@/types/analysis';
-import { cloneMemory } from '@/types/analysis';
+import { cloneMemory } from '@/lib/memoryStore';
 
 /** Weights must sum to exactly 1.0. */
 const WEIGHTS = {
@@ -54,7 +54,7 @@ export function verdictAgent(memory: SharedMemory): SharedMemory {
     const financial = updated.agentOutputs['financial']?.score ?? 0;
     const market = updated.agentOutputs['market']?.score ?? 0;
 
-    const finalScore = parseFloat(
+    let finalScore = parseFloat(
         (
             technical * WEIGHTS.technical +
             financial * WEIGHTS.financial +
@@ -94,7 +94,11 @@ export function verdictAgent(memory: SharedMemory): SharedMemory {
         score: finalScore,
         insights,
         risks: risks.length > 0 ? risks : undefined,
-        metadata: { category, weights: WEIGHTS, rawScores: { technical, financial, market } },
+        metadata: {
+            category,
+            weights: WEIGHTS,
+            rawScores: { technical, financial, market }
+        },
     };
 
     return updated;

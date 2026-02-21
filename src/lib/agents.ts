@@ -7,6 +7,7 @@ import type {
 import { fetchCompanySignals } from '@/lib/dataProviders/searchProvider';
 import { extractSignals } from '@/lib/dataProviders/signalExtractor';
 import { getFromCache, setInCache } from '@/lib/analysisCache';
+import { checkEnterpriseIsolation } from '@/lib/enterpriseIsolation';
 
 function hash(s: string): number {
   let h = 0;
@@ -186,7 +187,7 @@ function marketAgent(research: ResearchData, seed: number): MarketData {
   return { marketPositionScore: Math.round(sr(seed, 400) * 4 + 5), industryPressure: Math.round(sr(seed, 401) * 5 + 4), innovationUrgency: Math.round(sr(seed, 402) * 4 + 5), competitiveRisk: Math.round(sr(seed, 403) * 5 + 3), strategicAlignment: Math.round(sr(seed, 404) * 3 + 6) };
 }
 
-function scoringEngine(tech: TechnicalFitData, timing: TimingData, market: MarketData): ScoreData {
+function scoringEngine(tech: TechnicalFitData, timing: TimingData, market: MarketData, research: ResearchData): ScoreData {
   const breakdown = { technicalFit: tech.score * 10, timing: timing.timingScore * 10, budget: timing.budgetStrength * 10, urgency: timing.urgencyIndex * 10, marketPosition: market.marketPositionScore * 10 };
   const leadScore = Math.round(breakdown.technicalFit * 0.30 + breakdown.timing * 0.25 + breakdown.budget * 0.20 + breakdown.urgency * 0.15 + breakdown.marketPosition * 0.10);
   return { leadScore, category: leadScore >= 70 ? 'Hot' : leadScore >= 40 ? 'Warm' : 'Cold', confidence: Math.round(60 + Math.random() * 30), breakdown };
@@ -238,6 +239,47 @@ const AGENT_STEPS: string[] = [
 export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[]) => void): Promise<AnalysisResult> {
   console.time("analysis");
   const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
+
+  // ── ENTERPRISE ISOLATION GATE ──
+  const enterpriseCheck = checkEnterpriseIsolation(cleanDomain);
+  if (enterpriseCheck.isEnterprise) {
+    console.log('[Enterprise Isolation] Gate triggered for:', cleanDomain);
+    const steps: AgentStep[] = AGENT_STEPS.map(agent => ({ agent, status: 'complete' as const, progress: 100 }));
+    onProgress(steps);
+
+    const research: ResearchData = {
+      industry: enterpriseCheck.category || 'Enterprise',
+      companyName: extractName(cleanDomain),
+      domain: cleanDomain,
+      description: enterpriseCheck.explanation || '',
+      employeeCount: 'Enterprise Scale',
+      fundingSignals: [], hiringSignals: [], techClues: [], expansionSignals: [], rawSources: []
+    };
+
+    return {
+      id: crypto.randomUUID(), domain: cleanDomain, timestamp: new Date().toISOString(),
+      research,
+      signals: { fundingStage: 'Enterprise', hiringVelocity: 0, growthPhase: 'Mature', digitalTransformationSignals: [], technicalDebtSignals: [] },
+      technicalFit: { score: 0, matchedServices: [], riskSummary: 'Enterprise Internal Capabilities Policy' },
+      timing: { timingScore: 0, budgetStrength: 0, urgencyIndex: 0, budgetConfidence: 'N/A', fundingMomentum: 'N/A', expansionReadiness: 'N/A' },
+      market: { marketPositionScore: 0, industryPressure: 0, innovationUrgency: 0, competitiveRisk: 0, strategicAlignment: 0 },
+      score: { leadScore: 0, category: 'Cold', confidence: 100, breakdown: { technicalFit: 0, timing: 0, budget: 0, urgency: 0, marketPosition: 0 } },
+      debate: { entries: [], resolution: 'Pipeline terminated: Strategic Enterprise Isolation.', agreementPercent: 100 },
+      verdict: {
+        action: 'Isolate',
+        whyNow: enterpriseCheck.explanation || 'Strategically self-sufficient organization.',
+        riskFactors: ['Large Enterprise Exclusion Policy Triggered'],
+        confidence: 100,
+        isIsolated: true,
+        isolationCategory: enterpriseCheck.category,
+        isolationExplanation: enterpriseCheck.explanation
+      },
+      outreach: { decisionMakerPersona: 'N/A', email: '', linkedin: '', coldCall: '', valueProposition: 'Outreach suspended due to Enterprise Isolation Policy.' },
+      confidence: { overall: 100, dataCompleteness: 100, agentAgreement: 100, evidenceStrength: 100 },
+      evidenceSignals: [], riskIndex: 95, opportunityIndex: 5
+    };
+  }
+
   const seed = hash(cleanDomain);
   const steps: AgentStep[] = AGENT_STEPS.map(agent => ({ agent, status: 'pending' as const, progress: 0 }));
   const updateStep = (idx: number, status: AgentStep['status'], progress: number) => { steps[idx] = { ...steps[idx], status, progress }; onProgress([...steps]); };
@@ -296,7 +338,7 @@ export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[
   const market = marketAgent(research, seed); updateStep(4, 'complete', 100);
 
   updateStep(5, 'running', 0); await delay(200 + Math.random() * 200);
-  const score = scoringEngine(techFit, timing, market); updateStep(5, 'complete', 100);
+  const score = scoringEngine(techFit, timing, market, research); updateStep(5, 'complete', 100);
 
   updateStep(6, 'running', 0); await delay(700 + Math.random() * 500);
   const debate = debateAgent(techFit, timing, market, research); updateStep(6, 'complete', 100);
