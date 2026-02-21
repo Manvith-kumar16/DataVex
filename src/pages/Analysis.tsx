@@ -165,7 +165,10 @@ export default function Analysis() {
                     <h3 className="font-display text-sm font-semibold mb-4 flex items-center gap-2">
                       <BarChart3 className="h-4 w-4 text-accent" /> Lead Score
                     </h3>
-                    <ScoreGauge score={displayScore} />
+                    <ScoreGauge
+                      score={displayScore.leadScore}
+                      previousScore={activeScenarios.length > 0 ? result.score.leadScore : undefined}
+                    />
                   </div>
                   <div className="bg-card border border-border rounded-xl p-6">
                     <ConfidenceEngine confidence={result.confidence} />

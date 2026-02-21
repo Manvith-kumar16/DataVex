@@ -1,5 +1,5 @@
-import { useEffect, useState, memo } from 'react';
-import type { ScoreData } from '@/types/analysis';
+import { useEffect, useRef, useState, memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,14 +33,37 @@ function getLabel(score: number): string {
   return 'COLD';
 }
 
-export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
-  const [animatedScore, setAnimatedScore] = useState(0);
+const ANIM_MS = 800;
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export const ScoreGauge = memo(function ScoreGauge({
+  score,
+  previousScore,
+  size = 200,
+  strokeWidth = 14,
+}: ScoreGaugeProps) {
+  const [displayScore, setDisplayScore] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+  const prevRef = useRef(previousScore ?? 0);
+
+  const prev = previousScore ?? prevRef.current;
+  const delta = previousScore !== undefined ? score - previousScore : 0;
+
+  // Geometry
+  const center = size / 2;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - Math.min(100, Math.max(0, score)) / 100);
+
+  const color = getColor(score);
+
+  // Animate the number counter
   useEffect(() => {
-    const from = prev;
+    const from = displayScore;
     const to = score;
 
-    // cancel any in-flight animation
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -55,7 +78,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
     const tick = (ts: number) => {
       if (startRef.current === null) startRef.current = ts;
       const t = Math.min((ts - startRef.current) / ANIM_MS, 1);
-      const eased = 1 - Math.pow(1 - t, 3); // cubic easeOut mirrors arc easing
+      const eased = 1 - Math.pow(1 - t, 3);
       setDisplayScore(Math.round(from + (to - from) * eased));
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick);
@@ -71,7 +94,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div
       className="inline-flex flex-col items-center gap-3 select-none"
@@ -94,7 +117,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
           aria-label={`Score: ${score}`}
           role="img"
         >
-          {/* Soft background disc that takes on the score color */}
+          {/* Soft background disc */}
           <circle
             cx={center}
             cy={center}
@@ -114,7 +137,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
             className="text-gray-200 dark:text-white/10"
           />
 
-          {/* Animated arc — Framer Motion handles dashOffset transition */}
+          {/* Animated arc */}
           <motion.circle
             cx={center}
             cy={center}
@@ -124,7 +147,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
-            strokeDashoffset={circumference}   // start fully hidden
+            strokeDashoffset={circumference}
             transform={`rotate(-90 ${center} ${center})`}
             animate={{ strokeDashoffset: dashOffset }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -134,14 +157,12 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
 
         {/* Center labels */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
-          {/* Animated number */}
           <span
             className="text-4xl font-semibold leading-none tabular-nums tracking-tight"
             style={{ color: color.text }}
           >
             {displayScore}
           </span>
-          {/* Category label */}
           <span
             className="text-[10px] font-bold tracking-[0.2em] mt-0.5"
             style={{ color: color.text, opacity: 0.75 }}
@@ -151,7 +172,7 @@ export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
         </div>
       </div>
 
-      {/* Delta chip — only shown when there's a previous score */}
+      {/* Delta chip */}
       <AnimatePresence mode="wait">
         {delta !== 0 && (
           <motion.span
