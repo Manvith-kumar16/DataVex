@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { Signal, Evidence } from "./utils";
+
+// Legacy types — kept local to avoid coupling with the modular agent types
+type Signal = { category: string; value: string; evidence?: Evidence[] };
+type Evidence = { claim: string; sourceUrl: string; reliability: string; type: string; snippet: string };
 
 // Make sure the structure of report matches the expected mock structure
 export async function exportAnalysisPDF(report: any) {
