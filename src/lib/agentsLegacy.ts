@@ -1,9 +1,28 @@
+/**
+ * @deprecated This monolithic agent file is preserved for backward compatibility.
+ *
+ * The agent logic has been refactored into a modular, pure-function architecture:
+ *
+ *   src/lib/agents/
+ *     ├── researchAgent.ts   — raw signal collection
+ *     ├── signalAgent.ts     — signal normalization
+ *     ├── technicalAgent.ts  — technical fit scoring
+ *     ├── financialAgent.ts  — financial readiness scoring
+ *     ├── marketAgent.ts     — market opportunity scoring
+ *     ├── debateAgent.ts     — multi-agent debate synthesis
+ *     └── verdictAgent.ts    — weighted verdict and ScoreBreakdown
+ *
+ * For new features, import from '@/lib/agents' instead.
+ * The exports below (runAnalysis, saveAnalysis, getRecentAnalyses, etc.) remain
+ * fully functional and are NOT replaced by this refactor.
+ */
 import type {
   AnalysisResult, AgentStep, ResearchData, SignalData,
   TechnicalFitData, TimingData, MarketData, ScoreData,
   DebateData, VerdictData, OutreachData,
   EvidenceLevel, SignalWithEvidence, ConfidenceData, Scenario
 } from '@/types/analysis';
+
 
 function hash(s: string): number {
   let h = 0;
@@ -233,7 +252,6 @@ const AGENT_STEPS: string[] = [
 ];
 
 export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[]) => void): Promise<AnalysisResult> {
-  console.time("analysis");
   const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
   const seed = hash(cleanDomain);
   const steps: AgentStep[] = AGENT_STEPS.map(agent => ({ agent, status: 'pending' as const, progress: 0 }));
@@ -274,8 +292,6 @@ export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[
   ];
   const confidence = calculateConfidence(research, debate, evidenceSignals);
   const { riskIndex, opportunityIndex } = calculateRiskOpportunity(techFit, timing, market, signals);
-
-  console.timeEnd("analysis");
 
   return {
     id: crypto.randomUUID(), domain: cleanDomain, timestamp: new Date().toISOString(),

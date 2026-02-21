@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, memo } from 'react';
+import type { ScoreData } from '@/types/analysis';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,35 +33,8 @@ function getLabel(score: number): string {
   return 'COLD';
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export function ScoreGauge({
-  score,
-  previousScore,
-  size = 160,
-  strokeWidth = 12,
-}: ScoreGaugeProps) {
-  const prev = previousScore ?? score;
-  const delta = score - prev;
-
-  // SVG geometry — memoized so it only recalculates when size/strokeWidth change
-  const { radius, circumference, center } = useMemo(() => {
-    const r = (size - strokeWidth) / 2;
-    return {
-      radius: r,
-      circumference: 2 * Math.PI * r,
-      center: size / 2,
-    };
-  }, [size, strokeWidth]);
-
-  const dashOffset = circumference - (score / 100) * circumference;
-  const color = useMemo(() => getColor(score), [score]);
-
-  // ── Animated counter via requestAnimationFrame ────────────────────────────
-  const [displayScore, setDisplayScore] = useState(prev);
-  const rafRef = useRef<number | null>(null);
-  const startRef = useRef<number | null>(null);
-  const ANIM_MS = 800; // keeps in sync with arc animation duration
+export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
+  const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
     const from = prev;
@@ -201,6 +174,4 @@ export function ScoreGauge({
       </AnimatePresence>
     </div>
   );
-}
-
-export default ScoreGauge;
+});
