@@ -142,6 +142,42 @@ export default function Analysis() {
           {result && !analyzing && displayScore && (
             <Suspense fallback={<div className="flex justify-center p-10"><Loader2 className="h-6 w-6 text-accent animate-spin" /></div>}>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+
+                {/* Enterprise Isolation Banner */}
+                {result.verdict.isIsolated && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    className="bg-accent/5 border border-accent/20 rounded-xl p-8 mb-6"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                        <Shield className="h-6 w-6 text-accent" />
+                      </div>
+                      <div className="space-y-2">
+                        <h2 className="font-display text-xl font-bold flex items-center gap-2">
+                          🚫 Enterprise Self-Sufficient Organization
+                        </h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          This company operates at enterprise scale with significant internal AI, DevOps, and digital transformation capabilities.
+                          External service acquisition for core infrastructure is strategically unlikely.
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 bg-accent/10 text-accent rounded-md">
+                            Category: {result.verdict.isolationCategory || result.research.industry}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 bg-warning/10 text-warning rounded-md">
+                            Suggested Action: Skip
+                          </span>
+                        </div>
+                        <div className="mt-4 p-4 bg-background/50 rounded-lg border border-border/50 text-xs italic text-muted-foreground">
+                          "Strategic Reasoning: {result.verdict.isolationExplanation || result.verdict.whyNow}"
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex-1">
@@ -160,20 +196,22 @@ export default function Analysis() {
                 </div>
 
                 {/* Score + Confidence Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-card border border-border rounded-xl p-6">
-                    <h3 className="font-display text-sm font-semibold mb-4 flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-accent" /> Lead Score
-                    </h3>
-                    <ScoreGauge
-                      score={displayScore.leadScore}
-                      previousScore={activeScenarios.length > 0 ? result.score.leadScore : undefined}
-                    />
+                {!result.verdict.isIsolated && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <h3 className="font-display text-sm font-semibold mb-4 flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-accent" /> Lead Score
+                      </h3>
+                      <ScoreGauge
+                        score={displayScore.leadScore}
+                        previousScore={activeScenarios.length > 0 ? result.score.leadScore : undefined}
+                      />
+                    </div>
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <ConfidenceEngine confidence={result.confidence} />
+                    </div>
                   </div>
-                  <div className="bg-card border border-border rounded-xl p-6">
-                    <ConfidenceEngine confidence={result.confidence} />
-                  </div>
-                </div>
+                )}
 
                 {/* Why Now + Risk Factors */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -199,85 +237,99 @@ export default function Analysis() {
                 </div>
 
                 {/* Agent Scores Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Technical Fit', value: result.technicalFit.score, max: 10, icon: Cpu },
-                    { label: 'Timing', value: result.timing.timingScore, max: 10, icon: Timer },
-                    { label: 'Budget', value: result.timing.budgetStrength, max: 10, icon: DollarSign },
-                    { label: 'Market Position', value: result.market.marketPositionScore, max: 10, icon: TrendingUp },
-                  ].map(item => (
-                    <div key={item.label} className="bg-card border border-border rounded-lg p-4">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-[11px] text-muted-foreground">{item.label}</span>
-                      </div>
-                      <p className="font-display text-2xl font-bold">{item.value}<span className="text-sm text-muted-foreground">/{item.max}</span></p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Explainable Scoring + Agent Agreement */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-card border border-border rounded-xl p-6">
-                    <ExplainableScoring result={result} />
-                  </div>
-                  <div className="bg-card border border-border rounded-xl p-6">
-                    <AgentAgreement debate={result.debate} />
-                  </div>
-                </div>
-
-                {/* Scenario Simulator */}
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <ScenarioSimulator
-                    originalScore={result.score}
-                    modifiedScore={displayScore}
-                    activeScenarios={activeScenarios}
-                    onToggle={toggleScenario}
-                  />
-                </div>
-
-                {/* Services Match */}
-                <div className="bg-card border border-border rounded-xl p-6 space-y-3">
-                  <h3 className="font-display text-sm font-semibold flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-accent" /> Matched DataVex Services
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {result.technicalFit.matchedServices.map(svc => (
-                      <div key={svc.service} className="flex items-center gap-3 bg-secondary/30 rounded-lg p-3">
-                        <div className="h-8 w-8 rounded-md bg-accent/10 flex items-center justify-center text-xs font-mono font-bold text-accent">{svc.relevance}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium">{svc.service}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{svc.reason}</p>
+                {!result.verdict.isIsolated && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Technical Fit', value: result.technicalFit.score, max: 10, icon: Cpu },
+                      { label: 'Timing', value: result.timing.timingScore, max: 10, icon: Timer },
+                      { label: 'Budget', value: result.timing.budgetStrength, max: 10, icon: DollarSign },
+                      { label: 'Market Position', value: result.market.marketPositionScore, max: 10, icon: TrendingUp },
+                    ].map(item => (
+                      <div key={item.label} className="bg-card border border-border rounded-lg p-4">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-[11px] text-muted-foreground">{item.label}</span>
                         </div>
+                        <p className="font-display text-2xl font-bold">{item.value}<span className="text-sm text-muted-foreground">/{item.max}</span></p>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-2.5">
-                    <strong className="text-foreground">Risk Summary:</strong> {result.technicalFit.riskSummary}
-                  </p>
-                </div>
+                )}
+
+                {/* Explainable Scoring + Agent Agreement */}
+                {!result.verdict.isIsolated && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <ExplainableScoring result={result} />
+                    </div>
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <AgentAgreement debate={result.debate} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Scenario Simulator */}
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card border border-border rounded-xl p-6">
+                    <ScenarioSimulator
+                      originalScore={result.score}
+                      modifiedScore={displayScore}
+                      activeScenarios={activeScenarios}
+                      onToggle={toggleScenario}
+                    />
+                  </div>
+                )}
+
+                {/* Services Match */}
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card border border-border rounded-xl p-6 space-y-3">
+                    <h3 className="font-display text-sm font-semibold flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-accent" /> Matched DataVex Services
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {result.technicalFit.matchedServices.map(svc => (
+                        <div key={svc.service} className="flex items-center gap-3 bg-secondary/30 rounded-lg p-3">
+                          <div className="h-8 w-8 rounded-md bg-accent/10 flex items-center justify-center text-xs font-mono font-bold text-accent">{svc.relevance}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium">{svc.service}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{svc.reason}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-2.5">
+                      <strong className="text-foreground">Risk Summary:</strong> {result.technicalFit.riskSummary}
+                    </p>
+                  </div>
+                )}
 
                 {/* Debate */}
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <AgentDebate debate={result.debate} />
-                </div>
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card border border-border rounded-xl p-6">
+                    <AgentDebate debate={result.debate} />
+                  </div>
+                )}
 
                 {/* Outreach */}
-                <div className="bg-card border border-border rounded-xl p-6 space-y-3">
-                  <h3 className="font-display text-sm font-semibold flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4 text-accent" /> Outreach Strategy
-                  </h3>
-                  <OutreachTabs outreach={result.outreach} />
-                  <div className="bg-secondary/30 rounded-md p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-accent font-semibold mb-1">Value Proposition</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{result.outreach.valueProposition}</p>
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card border border-border rounded-xl p-6 space-y-3">
+                    <h3 className="font-display text-sm font-semibold flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4 text-accent" /> Outreach Strategy
+                    </h3>
+                    <OutreachTabs outreach={result.outreach} />
+                    <div className="bg-secondary/30 rounded-md p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-accent font-semibold mb-1">Value Proposition</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{result.outreach.valueProposition}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Evidence */}
-                <div className="bg-card border border-border rounded-xl p-6">
-                  <EvidenceSection evidenceSignals={result.evidenceSignals} research={result.research} />
-                </div>
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card border border-border rounded-xl p-6">
+                    <EvidenceSection evidenceSignals={result.evidenceSignals} research={result.research} />
+                  </div>
+                )}
               </motion.div>
             </Suspense>
           )}
