@@ -1,10 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows, Sun, Moon, Compass } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/compare', label: 'Compare', icon: GitCompareArrows },
   { path: '/history', label: 'History', icon: History },
 ];
@@ -42,8 +43,8 @@ export function Sidebar() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all ${isActive
-                  ? 'bg-primary/10 text-accent border-glow'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary/10 text-accent border-glow'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
             >
               <item.icon className="h-4 w-4" />

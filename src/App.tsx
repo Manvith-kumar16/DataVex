@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Analysis from "./pages/Analysis";
 import History from "./pages/History";
 import Compare from "./pages/Compare";
+import Discover from "./pages/Discover";
 import NotFound from "./pages/NotFound";
 import { ReactNode } from "react";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
               <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
+              <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
