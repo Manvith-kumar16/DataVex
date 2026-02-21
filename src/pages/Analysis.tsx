@@ -71,8 +71,8 @@ export default function Analysis() {
 
   const verdictColor = (action: string) =>
     action === 'Pursue' ? 'text-accent bg-accent/10 border-accent/20' :
-    action === 'Nurture' ? 'text-warning bg-warning/10 border-warning/20' :
-    'text-destructive bg-destructive/10 border-destructive/20';
+      action === 'Nurture' ? 'text-warning bg-warning/10 border-warning/20' :
+        'text-destructive bg-destructive/10 border-destructive/20';
 
   return (
     <div className="min-h-screen bg-background">
@@ -163,7 +163,7 @@ export default function Analysis() {
                   <h3 className="font-display text-sm font-semibold mb-4 flex items-center gap-2">
                     <BarChart3 className="h-4 w-4 text-accent" /> Lead Score
                   </h3>
-                  <ScoreGauge score={displayScore} />
+                  <ScoreGauge score={displayScore.leadScore} />
                 </div>
                 <div className="bg-card border border-border rounded-xl p-6">
                   <ConfidenceEngine confidence={result.confidence} />
