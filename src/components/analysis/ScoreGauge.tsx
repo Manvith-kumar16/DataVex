@@ -1,92 +1,177 @@
 import { useEffect, useState, memo } from 'react';
 import type { ScoreData } from '@/types/analysis';
 
-interface ScoreGaugeProps {
-  score: ScoreData;
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ScoreGaugeProps {
+  score: number;
+  previousScore?: number;
+  size?: number;
+  strokeWidth?: number;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+interface ColorSet {
+  stroke: string;
+  text: string;
+  glow: string;
+  disc: string;
+}
+
+function getColor(score: number): ColorSet {
+  if (score >= 70)
+    return { stroke: '#22c55e', text: '#22c55e', glow: '#22c55e2e', disc: '#22c55e0c' };
+  if (score >= 40)
+    return { stroke: '#facc15', text: '#facc15', glow: '#facc152e', disc: '#facc150c' };
+  return { stroke: '#ef4444', text: '#ef4444', glow: '#ef44442e', disc: '#ef44440c' };
+}
+
+function getLabel(score: number): string {
+  if (score >= 70) return 'HOT';
+  if (score >= 40) return 'WARM';
+  return 'COLD';
 }
 
 export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
-    let current = 0;
-    const target = score.leadScore;
-    const step = target / 40;
-    const interval = setInterval(() => {
-      current += step;
-      if (current >= target) {
-        current = target;
-        clearInterval(interval);
+    const from = prev;
+    const to = score;
+
+    // cancel any in-flight animation
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    startRef.current = null;
+
+    if (from === to) {
+      setDisplayScore(to);
+      return;
+    }
+
+    const tick = (ts: number) => {
+      if (startRef.current === null) startRef.current = ts;
+      const t = Math.min((ts - startRef.current) / ANIM_MS, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // cubic easeOut mirrors arc easing
+      setDisplayScore(Math.round(from + (to - from) * eased));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = null;
       }
-      setAnimatedScore(Math.round(current));
-    }, 25);
-    return () => clearInterval(interval);
-  }, [score.leadScore]);
+    };
 
-  const radius = 72;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (animatedScore / 100) * circumference;
-  const color = score.leadScore >= 70 ? 'hsl(var(--accent))' : score.leadScore >= 40 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
-  const bgColor = score.leadScore >= 70 ? 'hsl(var(--accent) / 0.1)' : score.leadScore >= 40 ? 'hsl(var(--warning) / 0.1)' : 'hsl(var(--destructive) / 0.1)';
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score]);
 
-  const breakdownItems = [
-    { label: 'Technical Fit', value: score.breakdown.technicalFit, weight: '30%' },
-    { label: 'Timing', value: score.breakdown.timing, weight: '25%' },
-    { label: 'Budget', value: score.breakdown.budget, weight: '20%' },
-    { label: 'Urgency', value: score.breakdown.urgency, weight: '15%' },
-    { label: 'Market Position', value: score.breakdown.marketPosition, weight: '10%' },
-  ];
-
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="relative">
-        <svg width="180" height="180" viewBox="0 0 180 180">
-          <circle cx="90" cy="90" r={radius} fill="none" stroke="hsl(var(--border))" strokeWidth="6" />
+    <div
+      className="inline-flex flex-col items-center gap-3 select-none"
+      style={{ width: size }}
+    >
+      {/* Gauge */}
+      <div
+        className="relative"
+        style={{
+          width: size,
+          height: size,
+          filter: `drop-shadow(0 6px 24px ${color.glow})`,
+        }}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          overflow="visible"
+          aria-label={`Score: ${score}`}
+          role="img"
+        >
+          {/* Soft background disc that takes on the score color */}
           <circle
-            cx="90" cy="90" r={radius} fill="none"
-            stroke={color}
-            strokeWidth="6"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - progress}
-            strokeLinecap="round"
-            transform="rotate(-90 90 90)"
-            style={{ transition: 'stroke-dashoffset 0.05s linear', filter: `drop-shadow(0 0 8px ${color})` }}
+            cx={center}
+            cy={center}
+            r={radius - strokeWidth / 2 - 1}
+            fill={color.disc}
           />
-          <text x="90" y="80" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="36" fontWeight="700" fontFamily="Space Grotesk">
-            {animatedScore}
-          </text>
-          <text x="90" y="102" textAnchor="middle" fill={color} fontSize="12" fontWeight="600" letterSpacing="0.1em">
-            {score.category.toUpperCase()}
-          </text>
+
+          {/* Grey track ring */}
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            className="text-gray-200 dark:text-white/10"
+          />
+
+          {/* Animated arc — Framer Motion handles dashOffset transition */}
+          <motion.circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={color.stroke}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference}   // start fully hidden
+            transform={`rotate(-90 ${center} ${center})`}
+            animate={{ strokeDashoffset: dashOffset }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            style={{ willChange: 'stroke-dashoffset' }}
+          />
         </svg>
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{ background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }}
-        />
+
+        {/* Center labels */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
+          {/* Animated number */}
+          <span
+            className="text-4xl font-semibold leading-none tabular-nums tracking-tight"
+            style={{ color: color.text }}
+          >
+            {displayScore}
+          </span>
+          {/* Category label */}
+          <span
+            className="text-[10px] font-bold tracking-[0.2em] mt-0.5"
+            style={{ color: color.text, opacity: 0.75 }}
+          >
+            {getLabel(score)}
+          </span>
+        </div>
       </div>
 
-      <div className="w-full space-y-2">
-        {breakdownItems.map(item => (
-          <div key={item.label} className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground w-28 shrink-0">{item.label}</span>
-            <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-1000 ease-out"
-                style={{
-                  width: `${item.value}%`,
-                  backgroundColor: item.value >= 70 ? 'hsl(var(--accent))' : item.value >= 40 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))',
-                }}
-              />
-            </div>
-            <span className="text-xs font-mono text-muted-foreground w-8 text-right">{item.value}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-        {score.confidence}% confidence
-      </div>
+      {/* Delta chip — only shown when there's a previous score */}
+      <AnimatePresence mode="wait">
+        {delta !== 0 && (
+          <motion.span
+            key={`delta-${score}-${prev}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className={[
+              'inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold',
+              delta > 0
+                ? 'bg-green-500/10 text-green-500 ring-1 ring-green-500/20'
+                : 'bg-red-500/10 text-red-500 ring-1 ring-red-500/20',
+            ].join(' ')}
+          >
+            <span className="text-[10px]">{delta > 0 ? '▲' : '▼'}</span>
+            {delta > 0 ? `+${delta}` : delta}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </div>
   );
 });
