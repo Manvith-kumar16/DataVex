@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import type { ScoreData } from '@/types/analysis';
 
 interface ScoreGaugeProps {
   score: ScoreData;
 }
 
-export function ScoreGauge({ score }: ScoreGaugeProps) {
+export const ScoreGauge = memo(function ScoreGauge({ score }: ScoreGaugeProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
@@ -89,4 +89,4 @@ export function ScoreGauge({ score }: ScoreGaugeProps) {
       </div>
     </div>
   );
-}
+});

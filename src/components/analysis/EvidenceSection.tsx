@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { SignalWithEvidence, ResearchData, EvidenceLevel } from '@/types/analysis';
 import { ChevronRight, CheckCircle2, HelpCircle, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,7 +14,7 @@ const levelConfig: Record<EvidenceLevel, { label: string; cls: string; Icon: typ
   assumed: { label: 'ASSUMED', cls: 'text-muted-foreground bg-muted/30 border-border', Icon: AlertCircle },
 };
 
-export function EvidenceSection({ evidenceSignals, research }: Props) {
+export const EvidenceSection = memo(function EvidenceSection({ evidenceSignals, research }: Props) {
   const categories = [
     { label: 'Funding Signals', signals: evidenceSignals.filter(s => research.fundingSignals.includes(s.signal)) },
     { label: 'Hiring Signals', signals: evidenceSignals.filter(s => research.hiringSignals.includes(s.signal)) },
@@ -76,4 +77,4 @@ export function EvidenceSection({ evidenceSignals, research }: Props) {
       </div>
     </div>
   );
-}
+});

@@ -233,6 +233,7 @@ const AGENT_STEPS: string[] = [
 ];
 
 export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[]) => void): Promise<AnalysisResult> {
+  console.time("analysis");
   const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
   const seed = hash(cleanDomain);
   const steps: AgentStep[] = AGENT_STEPS.map(agent => ({ agent, status: 'pending' as const, progress: 0 }));
@@ -273,6 +274,8 @@ export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[
   ];
   const confidence = calculateConfidence(research, debate, evidenceSignals);
   const { riskIndex, opportunityIndex } = calculateRiskOpportunity(techFit, timing, market, signals);
+
+  console.timeEnd("analysis");
 
   return {
     id: crypto.randomUUID(), domain: cleanDomain, timestamp: new Date().toISOString(),
