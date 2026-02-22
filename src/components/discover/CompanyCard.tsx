@@ -29,6 +29,10 @@ export function CompanyCard({ company, index }: CompanyCardProps) {
         navigate(`/analysis?domain=${encodeURIComponent(domain)}`);
     };
 
+    const handleViewMap = () => {
+        window.open(`https://www.google.com/maps/search/?api=1&query=${company.lat},${company.lon}`, '_blank');
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -65,8 +69,8 @@ export function CompanyCard({ company, index }: CompanyCardProps) {
                 <Button
                     variant="outline"
                     size="sm"
+                    onClick={handleViewMap}
                     className="flex-1 h-9 text-xs border-border/50 hover:bg-secondary"
-                    disabled
                 >
                     View Map
                 </Button>

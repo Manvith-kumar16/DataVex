@@ -18,7 +18,8 @@ import { Button } from '@/components/ui/button';
 import {
   ArrowLeft, RefreshCw, Loader2, Globe, Users, Building2,
   AlertTriangle, CheckCircle2, Shield, ShieldAlert, Zap, ExternalLink,
-  Cpu, Timer, DollarSign, BarChart3, Download, TrendingUp
+  Cpu, Timer, DollarSign, BarChart3, Download, TrendingUp,
+  AppWindow, BrainCircuit, Cloud, Settings2, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -32,6 +33,7 @@ export default function Analysis() {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState('');
   const [activeScenarios, setActiveScenarios] = useState<string[]>([]);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
 
   const startAnalysis = useCallback(async (domain: string) => {
     setAnalyzing(true);
@@ -220,6 +222,108 @@ export default function Analysis() {
                   </div>
                 )}
 
+                {/* Services Match */}
+                {!result.verdict.isIsolated && (
+                  <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2.5rem] p-8 glow-aura space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-accent/10 border border-accent/20">
+                          <Building2 className="h-5 w-5 text-accent" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h2 className="font-display text-lg font-bold tracking-tight">Services They Require</h2>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold opacity-60">DataVex Capabilities Alignment</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {result.technicalFit.matchedServices.map((svc, idx) => {
+                        const Icon = {
+                          'Application Development': AppWindow,
+                          'AI & Data Analytics': BrainCircuit,
+                          'Cloud & DevOps': Cloud,
+                          'Digital Transformation': Settings2
+                        }[svc.service] || Building2;
+
+                        const isExpanded = expandedService === svc.service;
+
+                        return (
+                          <motion.div
+                            key={svc.service}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            onClick={() => setExpandedService(isExpanded ? null : svc.service)}
+                            className={`relative overflow-hidden group p-5 rounded-2xl border transition-all duration-500 cursor-pointer ${svc.isMatch
+                              ? 'bg-accent/5 border-accent/30 shadow-[0_0_20px_-10px_hsl(var(--accent)/0.3)]'
+                              : 'bg-secondary/10 border-border/50 opacity-60'
+                              }`}
+                          >
+                            {svc.isMatch && (
+                              <div className="absolute top-0 right-0 p-3 flex items-center gap-2">
+                                <div className="px-2.5 py-1 rounded-full bg-accent/20 border border-accent/30 text-[9px] font-bold text-accent uppercase tracking-tighter animate-pulse-slow">
+                                  Perfect Match
+                                </div>
+                                <div className={`p-1 rounded-full bg-accent/10 text-accent transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                  <ChevronDown className="h-3 w-3" />
+                                </div>
+                              </div>
+                            )}
+
+                            {!svc.isMatch && (
+                              <div className="absolute top-3 right-3">
+                                <div className={`p-1 rounded-full bg-muted/20 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                  <ChevronDown className="h-3 w-3" />
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-start gap-4">
+                              <div className={`p-3 rounded-xl border transition-all duration-300 group-hover:scale-110 ${svc.isMatch ? 'bg-accent/10 border-accent/20 text-accent glow-aura' : 'bg-muted/10 border-border text-muted-foreground'
+                                }`}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <div className="space-y-1.5 pr-10">
+                                <h4 className={`text-sm font-bold tracking-tight transition-colors ${svc.isMatch ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                  {svc.service}
+                                </h4>
+                                <p className="text-[11px] leading-relaxed text-muted-foreground group-hover:text-foreground/80 transition-colors">
+                                  {svc.reason}
+                                </p>
+                              </div>
+                            </div>
+
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                  animate={{ height: 'auto', opacity: 1, marginTop: 16 }}
+                                  exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                  className="border-t border-border/50 pt-4"
+                                >
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`h-1.5 w-1.5 rounded-full ${svc.isMatch ? 'bg-accent' : 'bg-muted-foreground'}`} />
+                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Explainable Logic</span>
+                                    </div>
+                                    <p className="text-xs leading-relaxed text-foreground/80 italic bg-accent/5 p-3 rounded-xl border border-accent/10">
+                                      "{svc.detailedExplanation}"
+                                    </p>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-2.5">
+                      <strong className="text-foreground">Risk Summary:</strong> {result.technicalFit.riskSummary}
+                    </p>
+                  </div>
+                )}
+
                 {/* Why Now + Risk Factors */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2.5rem] p-8 glow-aura space-y-8">
@@ -319,29 +423,6 @@ export default function Analysis() {
                       activeScenarios={activeScenarios}
                       onToggle={toggleScenario}
                     />
-                  </div>
-                )}
-
-                {/* Services Match */}
-                {!result.verdict.isIsolated && (
-                  <div className="bg-card border border-border rounded-xl p-6 space-y-3">
-                    <h3 className="font-display text-sm font-semibold flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-accent" /> Matched DataVex Services
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {result.technicalFit.matchedServices.map(svc => (
-                        <div key={svc.service} className="flex items-center gap-3 bg-secondary/30 rounded-lg p-3">
-                          <div className="h-8 w-8 rounded-md bg-accent/10 flex items-center justify-center text-xs font-mono font-bold text-accent">{svc.relevance}</div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium">{svc.service}</p>
-                            <p className="text-[11px] text-muted-foreground truncate">{svc.reason}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground bg-secondary/50 rounded-md p-2.5">
-                      <strong className="text-foreground">Risk Summary:</strong> {result.technicalFit.riskSummary}
-                    </p>
                   </div>
                 )}
 

@@ -166,14 +166,52 @@ function signalAgent(research: ResearchData, seed: number): SignalData {
 
 function technicalFitAgent(research: ResearchData, signals: SignalData, seed: number): TechnicalFitData {
   const allClues = [...research.techClues, ...signals.digitalTransformationSignals, ...signals.technicalDebtSignals].join(' ').toLowerCase();
+
   const matched = datavexServices
     .map(svc => {
-      const matchCount = svc.keywords.filter(k => allClues.includes(k.toLowerCase())).length;
+      const matchedKeywords = svc.keywords.filter(k => allClues.includes(k.toLowerCase()));
+      const matchCount = matchedKeywords.length;
+
+      const isMatch = matchCount > 3;
       const relevance = Math.min(10, matchCount * 3 + Math.floor(sr(seed, 200 + datavexServices.indexOf(svc)) * 3));
-      return { service: svc.name, relevance, reason: matchCount > 0 ? `Detected ${matchCount} signal${matchCount > 1 ? 's' : ''} indicating need for ${svc.name.toLowerCase()}` : `Industry-standard need for ${svc.name.toLowerCase()} in ${research.industry} vertical` };
-    }).sort((a, b) => b.relevance - a.relevance);
-  const score = Math.round(matched.reduce((sum, m) => sum + m.relevance, 0) / matched.length);
-  return { score: Math.min(10, score), matchedServices: matched, riskSummary: signals.technicalDebtSignals.length > 1 ? 'Significant technical debt detected — potential for longer engagement cycles but higher deal value.' : 'Moderate technical landscape — standard integration complexity expected.' };
+
+      let reason: string;
+      let detailedExplanation: string;
+
+      if (isMatch) {
+        reason = `High-conviction match: Detected ${matchCount} technical signals (${matchedKeywords.join(', ')}) that directly align with our core ${svc.name} capabilities.`;
+        detailedExplanation = `Based on our deep logic analysis of ${research.companyName}'s technical landscape, there is a clear strategic requirement for ${svc.name}. The integration of ${matchedKeywords.slice(0, 3).join(' and ')} indicates a sophisticated but scaling infrastructure that would benefit immediately from DataVex's specialized ${svc.name} suite. Specifically, ${research.companyName} likely requires a partner to bridge the gap between their current ${matchedKeywords[0]} implementation and enterprise-grade performance.`;
+      } else if (matchCount > 0) {
+        reason = `Secondary opportunity: Found ${matchCount} related signals (${matchedKeywords.join(', ')}), but does not meet the "Perfect Match" threshold for immediate deployment.`;
+        detailedExplanation = `While there are some latent signals for ${svc.name}, the current technical pulse of ${research.companyName} suggests this is a secondary priority. We recommend monitoring their ${matchedKeywords[0]} evolution before initiating a high-stakes ${svc.name} engagement.`;
+      } else {
+        reason = `No direct technical signals for ${svc.name} were found in the current data sweep. Monitoring for future indicators.`;
+        detailedExplanation = `Our intelligence engine did not detect relevant signals for ${svc.name} within ${research.companyName}'s current public footprint. This doesn't rule out the need, but indicates a lower probability of immediate strategic alignment compared to other identified gaps.`;
+      }
+
+      return {
+        service: svc.name,
+        relevance,
+        reason,
+        isMatch,
+        detailedExplanation
+      };
+    })
+    .sort((a, b) => b.relevance - a.relevance);
+
+  // Score is baseline + average relevance of ACTUAL matches
+  const matchedOnly = matched.filter(m => m.isMatch);
+  const score = matchedOnly.length > 0
+    ? Math.round(matchedOnly.reduce((sum, m) => sum + m.relevance, 0) / matchedOnly.length)
+    : 0;
+
+  return {
+    score: Math.min(10, score),
+    matchedServices: matched,
+    riskSummary: signals.technicalDebtSignals.length > 1
+      ? 'Significant technical debt detected — high potential for modernization engagement.'
+      : 'Standard technical landscape — balanced integration complexity expected.'
+  };
 }
 
 function timingAgent(research: ResearchData, signals: SignalData, seed: number): TimingData {
@@ -297,7 +335,7 @@ export async function runAnalysis(domain: string, onProgress: (steps: AgentStep[
     try {
       const searchResults = await fetchCompanySignals(cleanDomain);
       if (searchResults.length > 0) {
-        const extracted = extractSignals(searchResults);
+        const extracted = extractSignals(searchResults, cleanDomain);
         liveResearch = {
           fundingSignals: extracted.fundingSignals,
           hiringSignals: extracted.hiringSignals,

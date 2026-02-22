@@ -44,17 +44,36 @@ export interface ExtractedSignals {
  * Converts Tavily SearchResult[] into categorised string arrays
  * compatible with ResearchData (m1 pipeline).
  */
-export function extractSignals(results: SearchResult[]): ExtractedSignals {
+export function extractSignals(results: SearchResult[], targetDomain: string): ExtractedSignals {
     const fundingSignals: string[] = [];
     const hiringSignals: string[] = [];
     const techClues: string[] = [];
     const expansionSignals: string[] = [];
     const rawSources: string[] = [];
 
+    // Helper to extract clean name for name-based matching
+    const targetName = targetDomain.split('.')[0].toLowerCase();
+
     for (const result of results) {
+        if (!result.url) continue;
+
+        const url = result.url.toLowerCase();
         const text = `${result.title} ${result.snippet}`.toLowerCase();
 
-        if (result.url) rawSources.push(result.url);
+        // ── STRICT DOMAIN ISOLATION ──
+        // 1. If it's a direct match to the target domain, it's verified.
+        // 2. If it's a 3rd party site (aggregators, news), the title or snippet MUST strictly mention
+        //    the full domain or the exact company name. This prevents "unity.com" results
+        //    from contaminating "iniunity.com" research.
+        const isDirectSource = url.includes(targetDomain.toLowerCase());
+        const mentionsTargetExactly = text.includes(targetDomain.toLowerCase()) || text.includes(targetName);
+
+        if (!isDirectSource && !mentionsTargetExactly) {
+            console.log(`[signalExtractor] Skipping non-relevant result: ${url}`);
+            continue;
+        }
+
+        rawSources.push(result.url);
 
         if (matchesAny(text, FUNDING_KW)) {
             fundingSignals.push(toLabel(result, 'Funding activity detected'));

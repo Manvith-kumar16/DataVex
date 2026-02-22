@@ -21,7 +21,7 @@ export interface SignalData {
 
 export interface TechnicalFitData {
   score: number;
-  matchedServices: { service: string; relevance: number; reason: string }[];
+  matchedServices: { service: string; relevance: number; reason: string; isMatch: boolean; detailedExplanation: string }[];
   riskSummary: string;
 }
 

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { SignalWithEvidence, ResearchData, EvidenceLevel } from '@/types/analysis';
-import { ChevronRight, CheckCircle2, HelpCircle, AlertCircle } from 'lucide-react';
+import { ChevronRight, CheckCircle2, HelpCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Props {
@@ -69,11 +69,27 @@ export const EvidenceSection = memo(function EvidenceSection({ evidenceSignals, 
           </div>
         ))}
       </div>
-      <div className="text-[11px] text-muted-foreground">
-        <strong className="text-foreground">Sources:</strong>{' '}
-        {research.rawSources.map((s, i) => (
-          <span key={i} className="font-mono">{s}{i < research.rawSources.length - 1 ? ' · ' : ''}</span>
-        ))}
+      <div className="space-y-3 pt-4 border-t border-border/50">
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Verified Data Sources</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {research.rawSources.filter(s => s && s.startsWith('http')).map((s, i) => (
+            <a
+              key={i}
+              href={s}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/30 border border-border/50 hover:border-accent/40 hover:bg-accent/5 transition-all duration-300"
+            >
+              <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-accent transition-colors" />
+              <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[200px]">
+                {s.replace('https://', '').replace('www.', '').split('/')[0]}
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

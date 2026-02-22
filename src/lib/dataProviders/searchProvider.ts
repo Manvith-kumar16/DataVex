@@ -22,10 +22,10 @@ const TAVILY_ENDPOINT = 'https://api.tavily.com/search';
  */
 function buildQueries(domain: string): string[] {
     return [
-        `${domain} funding investment raised series`,
-        `${domain} hiring engineers careers jobs`,
-        `${domain} tech stack kubernetes devops aws`,
-        `${domain} expansion new office global growth market`,
+        `"${domain}" funding investment raised series`,
+        `"${domain}" hiring engineers careers jobs`,
+        `"${domain}" tech stack kubernetes devops aws`,
+        `"${domain}" expansion new office global growth market`,
     ];
 }
 
