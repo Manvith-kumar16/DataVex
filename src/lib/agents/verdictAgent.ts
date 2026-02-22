@@ -54,7 +54,7 @@ export function verdictAgent(memory: SharedMemory): SharedMemory {
     const financial = updated.agentOutputs['financial']?.score ?? 0;
     const market = updated.agentOutputs['market']?.score ?? 0;
 
-    let finalScore = parseFloat(
+    const finalScore = parseFloat(
         (
             technical * WEIGHTS.technical +
             financial * WEIGHTS.financial +

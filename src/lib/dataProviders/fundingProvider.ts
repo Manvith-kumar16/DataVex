@@ -1,6 +1,11 @@
 import { Signal, Evidence } from "../utils";
 
-export function detectFunding(newsResults: any[]): Signal | null {
+export interface NewsResult {
+    url: string;
+    snippet: string;
+}
+
+export function detectFunding(newsResults: NewsResult[]): Signal | null {
     const keywords = ["funding", "raised", "series", "investment"];
     const evidenceList: Evidence[] = [];
 

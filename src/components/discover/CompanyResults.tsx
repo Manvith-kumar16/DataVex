@@ -12,6 +12,14 @@ interface CompanyResultsProps {
     } | null;
 }
 
+interface OverpassElement {
+    id: number;
+    tags: {
+        name?: string;
+        [key: string]: string | undefined;
+    };
+}
+
 export function CompanyResults({ location }: CompanyResultsProps) {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +56,7 @@ export function CompanyResults({ location }: CompanyResultsProps) {
             if (!response.ok) throw new Error('Failed to fetch from Overpass API');
 
             const data = await response.json();
-            const newCompanies = (data.elements || []).filter((el: any) => el.tags && el.tags.name);
+            const newCompanies = (data.elements || []).filter((el: OverpassElement) => el.tags && el.tags.name);
 
             if (isLoadMore) {
                 setCompanies(prev => {

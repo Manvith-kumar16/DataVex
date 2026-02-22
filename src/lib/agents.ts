@@ -126,14 +126,14 @@ export function applyScenarios(score: ScoreData, activeIds: string[]): ScoreData
 }
 
 // === MIGRATION FOR OLD DATA ===
-function migrateAnalysis(a: any): AnalysisResult {
+function migrateAnalysis(a: Record<string, unknown>): AnalysisResult {
   return {
     ...a,
     confidence: a.confidence || { overall: 50, dataCompleteness: 50, agentAgreement: 50, evidenceStrength: 50 },
     evidenceSignals: a.evidenceSignals || [],
     riskIndex: a.riskIndex ?? 50,
     opportunityIndex: a.opportunityIndex ?? 50,
-  };
+  } as AnalysisResult;
 }
 
 // === AGENTS ===
@@ -374,12 +374,14 @@ export function saveAnalysis(result: AnalysisResult) {
 }
 
 export function getRecentAnalyses(): AnalysisResult[] {
-  const raw: any[] = JSON.parse(localStorage.getItem('vexintel_analyses') || '[]');
+  const rawString = localStorage.getItem('vexintel_analyses');
+  const raw: Record<string, unknown>[] = rawString ? JSON.parse(rawString) : [];
   return raw.map(migrateAnalysis);
 }
 
 export function getAnalysisById(id: string): AnalysisResult | null {
-  const raw: any[] = JSON.parse(localStorage.getItem('vexintel_analyses') || '[]');
-  const found = raw.find((a: any) => a.id === id);
+  const rawString = localStorage.getItem('vexintel_analyses');
+  const raw: Record<string, unknown>[] = rawString ? JSON.parse(rawString) : [];
+  const found = raw.find((a) => a.id === id);
   return found ? migrateAnalysis(found) : null;
 }
