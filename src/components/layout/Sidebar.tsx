@@ -2,10 +2,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRef } from 'react';
-import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows, Sun, Moon, Compass, Camera } from 'lucide-react';
+import { LayoutDashboard, LogOut, Zap, History, GitCompareArrows, Sun, Moon, Compass, Camera, Briefcase } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/services', label: 'Services', icon: Briefcase },
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/compare', label: 'Compare', icon: GitCompareArrows },
   { path: '/history', label: 'History', icon: History },

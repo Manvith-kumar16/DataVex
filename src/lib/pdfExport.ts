@@ -1,11 +1,12 @@
 import jsPDF from "jspdf";
+import type { AnalysisResult } from "@/types/analysis";
 
 // Legacy types — kept local to avoid coupling with the modular agent types
 type Signal = { category: string; value: string; evidence?: Evidence[] };
 type Evidence = { claim: string; sourceUrl: string; reliability: string; type: string; snippet: string };
 
 // Make sure the structure of report matches the expected mock structure
-export async function exportAnalysisPDF(report: any) {
+export async function exportAnalysisPDF(report: AnalysisResult) {
   const doc = new jsPDF({
     unit: 'mm',
     format: 'a4',
@@ -18,7 +19,7 @@ export async function exportAnalysisPDF(report: any) {
   const lineHeight = 7;
 
   // Helper to add text and manage page breaks
-  const addText = (text: string, x: number, y: number, options?: any) => {
+  const addText = (text: string, x: number, y: number, options?: unknown) => {
     if (y > pageHeight - 20) {
       doc.addPage();
       cursorY = 20;

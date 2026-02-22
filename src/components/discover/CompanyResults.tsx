@@ -48,7 +48,7 @@ export function CompanyResults({ location }: CompanyResultsProps) {
             if (!response.ok) throw new Error('Failed to fetch from Overpass API');
 
             const data = await response.json();
-            const newCompanies = (data.elements || []).filter((el: any) => el.tags && el.tags.name);
+            const newCompanies = (data.elements || []).filter((el: { tags?: { name?: string } }) => el.tags && el.tags.name);
 
             if (isLoadMore) {
                 setCompanies(prev => {
