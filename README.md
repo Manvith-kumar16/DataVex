@@ -18,7 +18,7 @@ DataVex follows a modern **Client-Server Architecture** designed for security, s
 
 ---
 
-## 🤖 Multi-Agent Orchestration System
+## 🤖 Multi-Agent Orchestration System:
 
 DataVex uses a collaborative multi-agent system to analyze domains. Each agent is a specialized specialist:
 
