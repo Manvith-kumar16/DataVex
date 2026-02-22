@@ -11,14 +11,14 @@ DataVex follows a modern **Client-Server Architecture** designed for security, s
 - **Frontend (UI Portal)**: A high-performance React application built with Vite, TailwindCSS, and Shadcn UI. It handles visualization and user interaction.
 - **Backend (Intelligence Engine)**: A robust Node.js/Express server that isolates all AI logic, secret keys, and heavy orchestration from the client.
 
-### 🛡️ Security & Isolation
+### 🛡️ Security & Isolation:
 - **API Key Protection**: All sensitive keys (Tavily, OpenAI) are strictly server-side.
 - **Rate Limiting**: Built-in protection against API abuse.
 - **Enterprise Isolation**: Dynamic "Mega-Enterprise" detection to prevent redundant outreach to companies with massive internal tech teams.
 
 ---
 
-## 🤖 Multi-Agent Orchestration System
+## 🤖 Multi-Agent Orchestration System:
 
 DataVex uses a collaborative multi-agent system to analyze domains. Each agent is a specialized specialist:
 
