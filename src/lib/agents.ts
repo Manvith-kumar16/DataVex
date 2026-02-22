@@ -1,6 +1,6 @@
 import type { AnalysisResult, AgentStep, Scenario, ScoreData } from '@/types/analysis';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 /**
  * runAnalysis — Now a secure proxy to the production AI backend.

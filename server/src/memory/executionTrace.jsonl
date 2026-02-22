@@ -23,3 +23,4 @@
 {"timestamp":"2026-02-22T04:22:23.805Z","task_id":"cca0bc6a-080f-4d62-9ae2-21ce596f6f36","domain":"tcs.com","leadScore":15.35,"verdict":"Skip","event_type":"ANALYSIS_COMPLETE"}
 {"timestamp":"2026-02-22T04:22:54.466Z","task_id":"18c44d48-645f-49b3-8fb1-1574a49c2751","domain":"tcs.com","leadScore":15.35,"verdict":"Skip","event_type":"ANALYSIS_COMPLETE"}
 {"timestamp":"2026-02-22T04:23:08.605Z","task_id":"321ce3dd-4962-4177-9a3e-deb36c520936","domain":"iniunity.com","leadScore":46.65,"verdict":"Nurture","event_type":"ANALYSIS_COMPLETE"}
+{"timestamp":"2026-02-22T04:41:43.613Z","task_id":"638937ac-f2fe-4c0e-b5c6-c03ebc5671b2","domain":"amazon.com","leadScore":42.4,"verdict":"Nurture","event_type":"ANALYSIS_COMPLETE"}
