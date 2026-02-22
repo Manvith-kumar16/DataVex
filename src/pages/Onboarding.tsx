@@ -32,7 +32,7 @@ export default function Onboarding() {
     <div className="min-h-screen flex items-center justify-center p-6 gradient-mesh">
       <div className="absolute inset-0 bg-background/70" />
       <motion.div
-        className="relative z-10 w-full max-w-lg"
+        className="relative z-10 w-full max-w-lg p-8 rounded-[2.5rem] bg-card/40 backdrop-blur-xl border border-accent/20 glow-aura"
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -47,11 +47,11 @@ export default function Onboarding() {
           {step === 0 && (
             <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                  <Zap className="h-6 w-6 text-accent" />
+                <div className="h-12 w-12 rounded-xl bg-accent/5 flex items-center justify-center border border-accent/30 shadow-accent overflow-hidden">
+                  <img src="/favicon.ico" alt="Datavex.ai Logo" className="h-7 w-7 object-contain" />
                 </div>
               </div>
-              <h1 className="font-display text-3xl font-bold">Welcome to VexIntel</h1>
+              <h1 className="font-display text-3xl font-bold">Welcome to Datavex.ai</h1>
               <p className="text-muted-foreground leading-relaxed">
                 Your autonomous enterprise intelligence engine. Let's get you set up in 30 seconds.
               </p>
@@ -70,11 +70,10 @@ export default function Onboarding() {
                   <button
                     key={role.id}
                     onClick={() => setSelectedRole(role.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                      selectedRole === role.id
-                        ? 'border-accent bg-accent/5 glow-neon'
-                        : 'border-border bg-secondary/30 hover:border-muted-foreground/30'
-                    }`}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${selectedRole === role.id
+                      ? 'border-accent bg-accent/5 glow-neon'
+                      : 'border-border bg-secondary/30 hover:border-muted-foreground/30'
+                      }`}
                   >
                     <role.icon className={`h-5 w-5 ${selectedRole === role.id ? 'text-accent' : 'text-muted-foreground'}`} />
                     <div>

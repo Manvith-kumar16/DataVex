@@ -4,64 +4,65 @@
 
 @layer base {
   :root {
-    --background: 228 15% 5%;
-    --foreground: 210 20% 93%;
-    --card: 228 12% 8%;
-    --card-foreground: 210 20% 93%;
-    --popover: 228 12% 8%;
-    --popover-foreground: 210 20% 93%;
+    --background: 222 15% 4%;
+    --foreground: 210 20% 98%;
+    --card: 222 15% 7%;
+    --card-foreground: 210 20% 98%;
+    --popover: 222 15% 7%;
+    --popover-foreground: 210 20% 98%;
     --primary: 245 58% 51%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 228 10% 12%;
-    --secondary-foreground: 210 15% 70%;
-    --muted: 228 10% 15%;
-    --muted-foreground: 215 12% 50%;
+    --secondary: 222 15% 10%;
+    --secondary-foreground: 210 15% 80%;
+    --muted: 222 15% 12%;
+    --muted-foreground: 215 12% 55%;
     --accent: 171 77% 52%;
-    --accent-foreground: 228 15% 5%;
+    --accent-foreground: 222 15% 4%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 228 10% 14%;
-    --input: 228 10% 14%;
-    --ring: 245 58% 51%;
-    --radius: 0.5rem;
+    --border: 222 15% 12%;
+    --input: 222 15% 12%;
+    --ring: 171 77% 52%;
+    --radius: 0.75rem;
 
     --neon: 171 92% 55%;
-    --neon-glow: 0 0 20px hsl(171 92% 55% / 0.3), 0 0 60px hsl(171 92% 55% / 0.1);
-    --neon-glow-strong: 0 0 20px hsl(171 92% 55% / 0.5), 0 0 80px hsl(171 92% 55% / 0.2);
-    --primary-glow: 0 0 20px hsl(245 58% 51% / 0.3), 0 0 60px hsl(245 58% 51% / 0.1);
-    --surface-1: 228 12% 10%;
-    --surface-2: 228 12% 13%;
-    --surface-3: 228 12% 16%;
+    --neon-glow: 0 0 25px hsl(171 92% 55% / 0.15), 0 0 50px hsl(171 92% 55% / 0.05);
+    --neon-glow-strong: 0 0 30px hsl(171 92% 55% / 0.3), 0 0 70px hsl(171 92% 55% / 0.1);
+    --primary-glow: 0 4px 20px hsl(245 58% 51% / 0.25);
+    --accent-shadow: 0 8px 30px -10px hsl(171 77% 52% / 0.4);
+    --surface-1: 222 15% 8%;
+    --surface-2: 222 15% 11%;
+    --surface-3: 222 15% 14%;
     --success: 152 69% 45%;
     --warning: 45 93% 47%;
     --info: 217 91% 60%;
 
-    --sidebar-background: 228 15% 5%;
-    --sidebar-foreground: 210 20% 93%;
-    --sidebar-primary: 245 58% 51%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 10% 12%;
-    --sidebar-accent-foreground: 210 20% 93%;
-    --sidebar-border: 228 10% 14%;
-    --sidebar-ring: 245 58% 51%;
+    --sidebar-background: 222 15% 3%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 171 77% 52%;
+    --sidebar-primary-foreground: 222 15% 4%;
+    --sidebar-accent: 222 15% 8%;
+    --sidebar-accent-foreground: 171 77% 52%;
+    --sidebar-border: 222 15% 10%;
+    --sidebar-ring: 171 77% 52%;
 
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
   /* ─── Light Theme ─────────────────────────────────────────── */
   .light {
     --background: 220 20% 97%;
-    --foreground: 228 25% 12%;
+    --foreground: 228 15% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 228 25% 12%;
+    --card-foreground: 228 15% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 228 25% 12%;
+    --popover-foreground: 228 15% 20%;
     --primary: 245 58% 51%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 15% 92%;
-    --secondary-foreground: 228 20% 30%;
+    --secondary-foreground: 228 15% 35%;
     --muted: 220 15% 93%;
     --muted-foreground: 215 12% 45%;
     --accent: 171 65% 38%;
@@ -81,11 +82,11 @@
     --surface-3: 220 15% 89%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 228 25% 12%;
+    --sidebar-foreground: 228 15% 20%;
     --sidebar-primary: 245 58% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 15% 93%;
-    --sidebar-accent-foreground: 228 25% 12%;
+    --sidebar-accent-foreground: 228 15% 20%;
     --sidebar-border: 220 13% 86%;
     --sidebar-ring: 245 58% 51%;
   }
@@ -136,14 +137,28 @@
     background-clip: text;
   }
   .border-glow {
+    border: 1px solid hsl(var(--accent) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.1);
+  }
+  .glow-aura {
+    box-shadow: 0 0 30px -5px hsl(var(--accent) / 0.2), 0 0 15px -5px hsl(var(--accent) / 0.1);
     border: 1px solid hsl(var(--accent) / 0.2);
-    box-shadow: inset 0 0 20px hsl(var(--accent) / 0.03);
+  }
+  .glow-aura-strong {
+    box-shadow: 0 0 40px -5px hsl(var(--accent) / 0.4), 0 0 20px -5px hsl(var(--accent) / 0.2);
+    border: 1px solid hsl(var(--accent) / 0.4);
   }
   .animate-pulse-slow {
     animation: pulse-slow 3s ease-in-out infinite;
   }
   .animate-shimmer {
     animation: shimmer 2s ease-in-out infinite;
+  }
+  .bg-map {
+    background-image: url("data:image/svg+xml,%3Csvg width='1000' height='500' viewBox='0 0 1000 500' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='480' cy='200' r='2' fill='%2311f0c0' fill-opacity='0.1'%3E%3Canimate attributeName='opacity' values='0.1;0.4;0.1' dur='3s' repeatCount='indefinite' /%3E%3C/circle%3E%3Ccircle cx='520' cy='220' r='2' fill='%2311f0c0' fill-opacity='0.15'%3E%3Canimate attributeName='opacity' values='0.15;0.5;0.15' dur='4s' repeatCount='indefinite' /%3E%3C/circle%3E%3Ccircle cx='450' cy='250' r='1.5' fill='%2311f0c0' fill-opacity='0.1'/%3E%3Ccircle cx='550' cy='180' r='1.5' fill='%2311f0c0' fill-opacity='0.1'/%3E%3Ccircle cx='600' cy='240' r='2' fill='%2311f0c0' fill-opacity='0.08'/%3E%3Ccircle cx='400' cy='210' r='1.5' fill='%2311f0c0' fill-opacity='0.1'/%3E%3Ccircle cx='650' cy='200' r='2' fill='%2311f0c0' fill-opacity='0.12'/%3E%3Ccircle cx='200' cy='180' r='3' fill='%2311f0c0' fill-opacity='0.05'/%3E%3Ccircle cx='800' cy='250' r='2.5' fill='%2311f0c0' fill-opacity='0.05'/%3E%3C/svg%3E");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
   .glass {
     background: hsl(var(--card) / 0.6);
