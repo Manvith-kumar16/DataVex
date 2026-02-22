@@ -17,7 +17,7 @@ import type { AnalysisResult, AgentStep } from '@/types/analysis';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft, RefreshCw, Loader2, Globe, Users, Building2,
-  AlertTriangle, CheckCircle2, Shield, Zap, ExternalLink,
+  AlertTriangle, CheckCircle2, Shield, ShieldAlert, Zap, ExternalLink,
   Cpu, Timer, DollarSign, BarChart3, Download, TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -178,27 +178,34 @@ export default function Analysis() {
                   </motion.div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h1 className="font-display text-2xl font-bold">{result.research.companyName}</h1>
-                      <span className={`text-xs font-mono px-2 py-1 rounded-md border ${verdictColor(result.verdict.action)}`}>{result.verdict.action}</span>
+                {/* Header Section with Map Background */}
+                <div className="relative overflow-hidden rounded-[2.5rem] bg-card/20 border border-accent/20 mb-6 glow-aura-strong">
+                  <div className="absolute inset-0 bg-map opacity-40" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-background via-transparent to-transparent opacity-60" />
+
+                  <div className="relative z-10 p-8 flex flex-col sm:flex-row sm:items-center gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h1 className="font-display text-3xl font-bold tracking-tight">{result.research.companyName}</h1>
+                        <span className={`text-xs font-mono px-2.5 py-1 rounded-lg border shadow-sm ${verdictColor(result.verdict.action)}`}>
+                          {result.verdict.action}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground flex items-center gap-3 mt-2">
+                        <span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-accent" /> {result.domain}</span>
+                        <span className="text-border">|</span>
+                        <span>{result.research.industry}</span>
+                        <span className="text-border">|</span>
+                        <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-primary" /> {result.research.employeeCount}</span>
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                      <Globe className="h-3.5 w-3.5" /> {result.domain}
-                      <span className="text-border">·</span>
-                      {result.research.industry}
-                      <span className="text-border">·</span>
-                      <Users className="h-3.5 w-3.5" /> {result.research.employeeCount}
-                    </p>
                   </div>
                 </div>
 
                 {/* Score + Confidence Row */}
                 {!result.verdict.isIsolated && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-card border border-border rounded-xl p-6">
+                    <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-6 glow-aura">
                       <h3 className="font-display text-sm font-semibold mb-4 flex items-center gap-2">
                         <BarChart3 className="h-4 w-4 text-accent" /> Lead Score
                       </h3>
@@ -207,7 +214,7 @@ export default function Analysis() {
                         previousScore={activeScenarios.length > 0 ? result.score.leadScore : undefined}
                       />
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6">
+                    <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-6 glow-aura">
                       <ConfidenceEngine confidence={result.confidence} />
                     </div>
                   </div>
@@ -215,23 +222,58 @@ export default function Analysis() {
 
                 {/* Why Now + Risk Factors */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-                    <h3 className="font-display text-sm font-semibold flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-accent" /> Why Now
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{result.verdict.whyNow}</p>
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Risk Factors</p>
-                      <ul className="space-y-1">
+                  <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2.5rem] p-8 glow-aura space-y-8">
+                    {/* Why Now Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-accent/10 border border-accent/20">
+                          <Zap className="h-5 w-5 text-accent animate-pulse-slow" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h3 className="font-display text-lg font-bold tracking-tight">Strategic Context</h3>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold opacity-60">Why Now Analysis</span>
+                        </div>
+                      </div>
+                      <div className="relative p-5 rounded-2xl bg-accent/5 border border-accent/10 group hover:border-accent/30 transition-colors">
+                        <div className="absolute top-3 right-3 text-[10px] font-mono font-bold text-accent/40 uppercase tracking-tighter">Verified Signal</div>
+                        <p className="text-sm leading-relaxed text-foreground/90 font-medium">
+                          {result.verdict.whyNow}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Risk Factors Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-warning/10 border border-warning/20">
+                          <ShieldAlert className="h-5 w-5 text-warning" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h3 className="font-display text-lg font-bold tracking-tight">Risk Assessment</h3>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold opacity-60">Potential Obstacles</span>
+                        </div>
+                      </div>
+                      <div className="grid gap-3">
                         {result.verdict.riskFactors.map((r, i) => (
-                          <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                            <AlertTriangle className="h-3 w-3 text-warning shrink-0 mt-0.5" />{r}
-                          </li>
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: 5 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 * i }}
+                            className="flex items-start gap-3 p-3.5 rounded-xl bg-warning/5 border border-warning/10 hover:bg-warning/10 transition-colors group/risk"
+                          >
+                            <div className="mt-0.5 p-1 rounded-md bg-warning/20 group-hover/risk:bg-warning/30 transition-colors">
+                              <AlertTriangle className="h-3 w-3 text-warning" />
+                            </div>
+                            <span className="text-xs text-muted-foreground group-hover/risk:text-foreground transition-colors leading-snug font-medium">
+                              {r}
+                            </span>
+                          </motion.div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </div>
-                  <div className="bg-card border border-border rounded-xl p-6">
+                  <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-6 glow-aura">
                     <RiskOpportunityQuadrant riskIndex={result.riskIndex} opportunityIndex={result.opportunityIndex} companyName={result.research.companyName} />
                   </div>
                 </div>
@@ -245,7 +287,7 @@ export default function Analysis() {
                       { label: 'Budget', value: result.timing.budgetStrength, max: 10, icon: DollarSign },
                       { label: 'Market Position', value: result.market.marketPositionScore, max: 10, icon: TrendingUp },
                     ].map(item => (
-                      <div key={item.label} className="bg-card border border-border rounded-lg p-4">
+                      <div key={item.label} className="bg-card/30 backdrop-blur-sm border border-accent/20 rounded-2xl p-4 glow-aura">
                         <div className="flex items-center gap-1.5 mb-2">
                           <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="text-[11px] text-muted-foreground">{item.label}</span>
@@ -259,10 +301,10 @@ export default function Analysis() {
                 {/* Explainable Scoring + Agent Agreement */}
                 {!result.verdict.isIsolated && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-card border border-border rounded-xl p-6">
+                    <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-6 glow-aura">
                       <ExplainableScoring result={result} />
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6">
+                    <div className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-6 glow-aura">
                       <AgentAgreement debate={result.debate} />
                     </div>
                   </div>

@@ -36,11 +36,10 @@ export function OutreachTabs({ outreach }: OutreachTabsProps) {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all flex-1 justify-center ${
-              activeTab === tab.key
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all flex-1 justify-center ${activeTab === tab.key
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
             {tab.label}

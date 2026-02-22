@@ -5,6 +5,7 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  profilePic?: string;
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   updateRole: (role: string) => void;
+  updateProfilePic: (dataUrl: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -62,8 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfilePic = (profilePic: string) => {
+    if (user) {
+      const updated = { ...user, profilePic };
+      persistUser(updated);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, updateRole }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, updateRole, updateProfilePic }}>
       {children}
     </AuthContext.Provider>
   );

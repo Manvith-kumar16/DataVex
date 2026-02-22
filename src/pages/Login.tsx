@@ -41,10 +41,10 @@ export default function Login() {
         <div className="absolute inset-0 bg-background/80" />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center border border-accent/20">
-              <Zap className="h-5 w-5 text-accent" />
+            <div className="h-10 w-10 rounded-xl bg-accent/5 flex items-center justify-center border border-accent/30 overflow-hidden shadow-accent">
+              <img src="/favicon.ico" alt="Datavex.ai Logo" className="h-6 w-6 object-contain" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">VexIntel</span>
+            <span className="font-display font-bold text-lg tracking-tight">Datavex.ai</span>
           </div>
 
           <motion.div
@@ -86,11 +86,11 @@ export default function Login() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm space-y-8"
+          className="w-full max-w-sm space-y-8 p-8 rounded-[2rem] bg-card/30 border border-accent/30 backdrop-blur-md glow-aura"
         >
           <div className="lg:hidden flex items-center gap-2 mb-4">
-            <Zap className="h-5 w-5 text-accent" />
-            <span className="font-display font-bold">VexIntel</span>
+            <img src="/favicon.ico" alt="Datavex.ai Logo" className="h-5 w-5 object-contain" />
+            <span className="font-display font-bold">Datavex.ai</span>
           </div>
 
           <div>

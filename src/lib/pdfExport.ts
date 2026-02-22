@@ -46,7 +46,7 @@ export async function exportAnalysisPDF(report: any) {
   // --- A. Header ---
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  cursorY = addText("VexIntel Enterprise Intelligence Report", marginX, cursorY);
+  cursorY = addText("Datavex.ai Enterprise Intelligence Report", marginX, cursorY);
 
   doc.setFontSize(16);
   doc.setTextColor(100);
@@ -140,7 +140,7 @@ export async function exportAnalysisPDF(report: any) {
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "italic");
-  const defaultEmail = `Hi Team,\n\nBased on recent ${fundingSignal ? 'funding' : 'activity'} and a ${hiringSignal ? hiringSignal.value.toLowerCase() : 'steady'} hiring velocity, we believe our platform can accelerate your technical goals.\n\nBest,\nVexIntel`;
+  const defaultEmail = `Hi Team,\n\nBased on recent ${fundingSignal ? 'funding' : 'activity'} and a ${hiringSignal ? hiringSignal.value.toLowerCase() : 'steady'} hiring velocity, we believe our platform can accelerate your technical goals.\n\nBest,\nDatavex.ai`;
   cursorY = addMultiLineText(report.outreachEmail || defaultEmail, marginX, cursorY, 170);
 
   cursorY += 10;
@@ -157,5 +157,5 @@ export async function exportAnalysisPDF(report: any) {
   cursorY = addText(`Overall Confidence: ${report.confidence || '65'}%`, marginX, cursorY);
 
   // Save PDF
-  doc.save("VexIntel_Report.pdf");
+  doc.save("Datavex_Report.pdf");
 }

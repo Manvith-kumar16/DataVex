@@ -53,7 +53,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border border-border rounded-xl p-6 border-glow"
+            className="bg-card/30 backdrop-blur-md border border-accent/20 rounded-[2rem] p-8 glow-aura"
           >
             <form onSubmit={handleAnalyze} className="flex gap-3">
               <div className="relative flex-1">
@@ -119,7 +119,7 @@ export default function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + i * 0.05 }}
                     onClick={() => navigate(`/analysis?id=${analysis.id}`)}
-                    className="w-full flex items-center gap-4 bg-card border border-border rounded-lg p-4 hover:border-accent/30 transition-all group text-left"
+                    className="w-full flex items-center gap-4 bg-card/20 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-accent/40 hover:glow-aura transition-all group text-left"
                   >
                     <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center font-display font-bold text-sm text-accent">
                       {analysis.score.leadScore}
