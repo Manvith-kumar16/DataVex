@@ -1,15 +1,4 @@
-// src/lib/dataProviders/signalExtractor.ts
-//
-// Signal Extractor — maps raw Tavily SearchResults into ResearchData string arrays.
-// Works with the m1 pipeline's ResearchData shape:
-//   fundingSignals: string[]
-//   hiringSignals: string[]
-//   techClues: string[]
-//   expansionSignals: string[]
-
 import type { SearchResult } from './searchProvider';
-
-// ── Keyword dictionaries ──────────────────────────────────────────────────────
 
 const FUNDING_KW = ['series', 'raised', 'funding', 'investment', 'venture', 'vc', 'seed', 'capital', 'pre-ipo'];
 const HIRING_KW = ['hiring', 'careers', 'engineer', 'developer', 'job listing', 'open role', 'talent', 'recruiter', 'headcount'];
@@ -20,14 +9,9 @@ function matchesAny(text: string, keywords: string[]): boolean {
     return keywords.some((kw) => text.includes(kw));
 }
 
-/**
- * Deduplicated label from a search result snippet.
- * Keeps it similar to the existing mock signal format (short, sentence-like).
- */
 function toLabel(result: SearchResult, fallback: string): string {
     const snippet = result.snippet?.trim();
     if (!snippet) return fallback;
-    // Take first sentence or first 80 chars
     const sentence = snippet.split(/[.!?]/)[0]?.trim();
     return sentence && sentence.length > 12 ? sentence.slice(0, 80) : fallback;
 }
@@ -40,10 +24,6 @@ export interface ExtractedSignals {
     rawSources: string[];
 }
 
-/**
- * Converts Tavily SearchResult[] into categorised string arrays
- * compatible with ResearchData (m1 pipeline).
- */
 export function extractSignals(results: SearchResult[], targetDomain: string): ExtractedSignals {
     const fundingSignals: string[] = [];
     const hiringSignals: string[] = [];
@@ -51,7 +31,6 @@ export function extractSignals(results: SearchResult[], targetDomain: string): E
     const expansionSignals: string[] = [];
     const rawSources: string[] = [];
 
-    // Helper to extract clean name for name-based matching
     const targetName = targetDomain.split('.')[0].toLowerCase();
 
     for (const result of results) {
@@ -60,16 +39,10 @@ export function extractSignals(results: SearchResult[], targetDomain: string): E
         const url = result.url.toLowerCase();
         const text = `${result.title} ${result.snippet}`.toLowerCase();
 
-        // ── STRICT DOMAIN ISOLATION ──
-        // 1. If it's a direct match to the target domain, it's verified.
-        // 2. If it's a 3rd party site (aggregators, news), the title or snippet MUST strictly mention
-        //    the full domain or the exact company name. This prevents "unity.com" results
-        //    from contaminating "iniunity.com" research.
         const isDirectSource = url.includes(targetDomain.toLowerCase());
         const mentionsTargetExactly = text.includes(targetDomain.toLowerCase()) || text.includes(targetName);
 
         if (!isDirectSource && !mentionsTargetExactly) {
-            console.log(`[signalExtractor] Skipping non-relevant result: ${url}`);
             continue;
         }
 
@@ -89,7 +62,6 @@ export function extractSignals(results: SearchResult[], targetDomain: string): E
         }
     }
 
-    // Deduplicate within each category (first-seen wins)
     function dedup(arr: string[]): string[] {
         return [...new Map(arr.map((s) => [s.slice(0, 40), s])).values()];
     }
