@@ -25,7 +25,7 @@ app.use(cors({
 app.use(express.json());
 
 // Handle OPTIONS preflight
-app.options('*', cors() as any);
+app.options('*', cors() as express.RequestHandler);
 
 // Rate Limiting: 10 requests per minute
 const limiter = rateLimit({

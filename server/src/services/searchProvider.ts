@@ -28,7 +28,7 @@ async function runQuery(query: string, apiKey: string): Promise<SearchResult[]> 
             headers: { 'Authorization': `Bearer ${apiKey}` }
         });
 
-        return (response.data.results ?? []).map((item: any) => ({
+        return (response.data.results ?? []).map((item: { title?: string; url?: string; content?: string; snippet?: string; score?: number }) => ({
             title: String(item.title ?? ''),
             url: String(item.url ?? ''),
             snippet: String(item.content ?? item.snippet ?? ''),

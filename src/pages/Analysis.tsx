@@ -44,8 +44,9 @@ export default function Analysis() {
       const res = await runAnalysis(domain, setSteps);
       saveAnalysis(res);
       setResult(res);
-    } catch (e: any) {
-      setError(e.message || 'Analysis failed');
+    } catch (e) {
+      const err = e as Error;
+      setError(err.message || 'Analysis failed');
     } finally {
       setAnalyzing(false);
     }

@@ -165,7 +165,7 @@ export interface AgentOutput {
     score: number;
     insights: string[];
     risks?: string[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export interface Signal {

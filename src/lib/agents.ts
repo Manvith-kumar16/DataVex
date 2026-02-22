@@ -48,7 +48,7 @@ export async function runAnalysis(
 
     console.timeEnd("analysis_backend");
     return result;
-  } catch (error: any) {
+  } catch (error) {
     console.error('[runAnalysis] Error calling backend:', error);
     throw error;
   }
@@ -91,6 +91,6 @@ export function getRecentAnalyses(): AnalysisResult[] {
 }
 
 export function getAnalysisById(id: string): AnalysisResult | null {
-  const raw: any[] = JSON.parse(localStorage.getItem('vexintel_analyses') || '[]');
-  return raw.find((a: any) => a.id === id) || null;
+  const raw: AnalysisResult[] = JSON.parse(localStorage.getItem('vexintel_analyses') || '[]');
+  return raw.find((a) => a.id === id) || null;
 }

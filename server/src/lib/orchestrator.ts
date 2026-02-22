@@ -46,7 +46,7 @@ export async function runServerAnalysis(domain: string): Promise<AnalysisResult>
             outreach: { decisionMakerPersona: 'N/A', email: '', linkedin: '', coldCall: '', valueProposition: 'Outreach suspended due to Enterprise Isolation Policy.' },
             confidence: { overall: 100, dataCompleteness: 100, agentAgreement: 100, evidenceStrength: 100 },
             evidenceSignals: [], riskIndex: 95, opportunityIndex: 5
-        } as any;
+        } as AnalysisResult;
     }
 
     // 2. Full Pipeline

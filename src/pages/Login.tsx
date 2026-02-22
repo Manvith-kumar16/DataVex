@@ -27,8 +27,9 @@ export default function Login() {
         await signup(email, password, name);
       }
       navigate('/onboarding');
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
