@@ -1,34 +1,8 @@
-// src/lib/agents/researchAgent.ts
-//
-// ResearchAgent — Stage 1 of the modular pipeline.
-//
-// Responsibility:
-//   Gather raw intelligence signals for a given domain.
-//
-//   LIVE mode (when VITE_TAVILY_API_KEY is set):
-//     → Calls Tavily API via fetchCompanySignals()
-//     → Extracts typed Signal[] via extractSignals()
-//     → Returns populated SharedMemory with real sourceUrls
-//
-//   FALLBACK mode (no key, key quota exhausted, or network failure):
-//     → Generates deterministic seeded-mock signals (domain hash based)
-//     → Identical to this agent's original behaviour
-//     → Zero downtime — tests continue to work unmodified
-//
-// Contract:
-//   • Accepts SharedMemory
-//   • Never mutates the original reference (uses cloneMemory)
-//   • Appends new Signal[] to memory.rawSignals
-//   • Writes AgentOutput to memory.agentOutputs["research"]
-//   • Returns updated SharedMemory (Promise — async for live fetch)
-
-import type { SharedMemory, Signal, SignalType } from '@/types/analysis';
-import { cloneMemory } from '@/types/analysis';
-import { fetchCompanySignals } from '@/lib/dataProviders/searchProvider';
-import { extractSignals } from '@/lib/dataProviders/signalExtractor';
-import { getFromCache, setInCache } from '@/lib/analysisCache';
-
-// ── Deterministic seeded pseudo-random helpers (fallback) ─────────────────────
+import type { SharedMemory, Signal } from '../types/analysis';
+import { cloneMemory } from '../lib/memoryStore';
+import { fetchCompanySignals } from '../services/searchProvider';
+import { extractSignals } from '../services/signalExtractor';
+import { getFromCache, setInCache } from '../lib/analysisCache';
 
 function hash(s: string): number {
     let h = 0;
@@ -48,15 +22,7 @@ function pickSeeded<T>(arr: T[], seed: number, idx: number): T {
     return arr[Math.floor(seededRandom(seed, idx) * arr.length)];
 }
 
-// ── Mock signal catalogue (fallback) ─────────────────────────────────────────
-
-interface SignalTemplate {
-    type: SignalType;
-    content: string;
-    baseReliability: number;
-}
-
-const SIGNAL_TEMPLATES: readonly SignalTemplate[] = [
+const SIGNAL_TEMPLATES = [
     { type: 'FUNDING', content: 'Series B funding round completed in Q3', baseReliability: 0.90 },
     { type: 'FUNDING', content: 'Strategic investment received from major VC', baseReliability: 0.85 },
     { type: 'FUNDING', content: 'Revenue growth exceeding 40% YoY detected', baseReliability: 0.80 },
@@ -73,43 +39,26 @@ const SIGNAL_TEMPLATES: readonly SignalTemplate[] = [
     { type: 'MARKET', content: 'Partner program launch observed on company blog', baseReliability: 0.76 },
     { type: 'RISK', content: 'Technical debt signals: manual deployment processes', baseReliability: 0.55 },
     { type: 'RISK', content: 'Security compliance gaps identified in job listings', baseReliability: 0.50 },
-] as const;
+];
 
-/**
- * Generates deterministic seeded-mock signals for a domain.
- * Used as fallback when live API is unavailable.
- */
 function generateMockSignals(domain: string): Signal[] {
     const seed = hash(domain);
-    const count = 3 + Math.floor(seededRandom(seed, 0) * 4); // 3–6 signals
+    const count = 3 + Math.floor(seededRandom(seed, 0) * 4);
 
     return Array.from({ length: count }, (_, i) => {
-        const template = pickSeeded(SIGNAL_TEMPLATES as SignalTemplate[], seed, i + 1);
+        const template = pickSeeded(SIGNAL_TEMPLATES, seed, i + 1);
         const reliabilityVariance = seededRandom(seed, i + 50) * 0.1 - 0.05;
         return {
             id: `${domain}-signal-${i}-${seed}`,
             type: template.type,
             content: template.content,
-            sourceUrl: `https://${domain}/research/${template.type.toLowerCase()}`,
+            source: `https://${domain}/research/${template.type.toLowerCase()}`,
             reliability: Math.min(1, Math.max(0, template.baseReliability + reliabilityVariance)),
-            timestamp: Date.now() - i * 60_000,
+            timestamp: new Date(Date.now() - i * 60_000).toISOString(),
         } satisfies Signal;
     });
 }
 
-// ── Agent ─────────────────────────────────────────────────────────────────────
-
-/**
- * ResearchAgent — gathers intelligence signals for a domain.
- *
- * Attempts live Tavily fetch first. Falls back to seeded-mock signals
- * if the API key is missing, the network fails, or the cache has no entry.
- *
- * Results are cached for 6 hours to minimise API usage.
- *
- * @param memory - Current SharedMemory context.
- * @returns Promise<SharedMemory> with rawSignals and agentOutputs["research"] populated.
- */
 export async function researchAgent(memory: SharedMemory): Promise<SharedMemory> {
     const updated = cloneMemory(memory);
     const domain = updated.domain;
@@ -117,27 +66,28 @@ export async function researchAgent(memory: SharedMemory): Promise<SharedMemory>
     let signals: Signal[];
     let source: 'live' | 'cache' | 'mock';
 
-    // 1. Check cache first
     const cached = getFromCache<Signal[]>(domain);
     if (cached !== null) {
         signals = cached;
         source = 'cache';
     } else {
-        // 2. Try live fetch
         try {
             const results = await fetchCompanySignals(domain);
             if (results.length > 0) {
-                signals = extractSignals(results);
+                const extracted = extractSignals(results, domain);
+                signals = [
+                    ...extracted.fundingSignals.map(s => ({ id: crypto.randomUUID(), type: 'FUNDING', content: s, source: domain, reliability: 0.9, timestamp: new Date().toISOString() })),
+                    ...extracted.hiringSignals.map(s => ({ id: crypto.randomUUID(), type: 'HIRING', content: s, source: domain, reliability: 0.8, timestamp: new Date().toISOString() })),
+                    ...extracted.techClues.map(s => ({ id: crypto.randomUUID(), type: 'TECH', content: s, source: domain, reliability: 0.7, timestamp: new Date().toISOString() })),
+                    ...extracted.expansionSignals.map(s => ({ id: crypto.randomUUID(), type: 'EXPANSION', content: s, source: domain, reliability: 0.8, timestamp: new Date().toISOString() }))
+                ];
                 source = 'live';
-                // Cache extracted signals
                 setInCache(domain, signals);
             } else {
-                // API key missing or no results — fall back to mock
                 signals = generateMockSignals(domain);
                 source = 'mock';
             }
         } catch {
-            // Network failure — fall back to mock
             signals = generateMockSignals(domain);
             source = 'mock';
         }
@@ -145,23 +95,13 @@ export async function researchAgent(memory: SharedMemory): Promise<SharedMemory>
 
     updated.rawSignals = [...updated.rawSignals, ...signals];
 
-    const byType = signals.reduce<Partial<Record<SignalType, number>>>((acc, s) => {
-        acc[s.type] = (acc[s.type] ?? 0) + 1;
-        return acc;
-    }, {});
-
     updated.agentOutputs['research'] = {
         agentName: 'ResearchAgent',
         insights: [
             `Collected ${signals.length} signals for "${domain}" [source: ${source}]`,
-            ...Object.entries(byType).map(([type, n]) => `${n} ${type} signal${n! > 1 ? 's' : ''} detected`),
         ],
-        metadata: {
-            signalCount: signals.length,
-            domain,
-            source,
-            cachedAt: source === 'cache' ? Date.now() : undefined,
-        },
+        score: 100,
+        metadata: { signalCount: signals.length, domain, source },
     };
 
     return updated;
