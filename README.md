@@ -6,7 +6,7 @@ DataVex is a state-of-the-art, multi-agent AI orchestration platform designed fo
 
 ## 🏗️ Architecture Overview
 
-DataVex follows a modern **Client-Server Architecture** designed for security, scalability, and "SaaS-ready" deployment.
+DataVex follows a modern **Client-Server Architecture** designed for security,  scalability, and "SaaS-ready" deployment.
 
 - **Frontend (UI Portal)**: A high-performance React application built with Vite, TailwindCSS, and Shadcn UI. It handles visualization and user interaction.
 - **Backend (Intelligence Engine)**: A robust Node.js/Express server that isolates all AI logic, secret keys, and heavy orchestration from the client.
