@@ -36,7 +36,7 @@ DataVex uses a collaborative multi-agent system to analyze domains. Each agent i
 
 ## 🛠️ Environment Configuration
 
-The system is split into two environments. Ensure you have the following `.env` files configured:
+The system is split into two environments.  Ensure you have the following `.env` files configured:
 
 ### Backend (`/server/.env`)
 ```env
