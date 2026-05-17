@@ -89,6 +89,137 @@ The application will be available at `http://localhost:5173`, communicating with
 
 ---
 
+## 📁 Repository Structure
+
+```
+DataVex/
+├── index.html                        # HTML entry point for Vite
+├── package.json                      # Frontend dependencies & scripts
+├── vite.config.ts                    # Vite build configuration
+├── vitest.config.ts                  # Vitest test configuration
+├── tailwind.config.ts                # TailwindCSS configuration
+├── tsconfig.json                     # Root TypeScript config
+├── tsconfig.app.json                 # App-level TypeScript config
+├── tsconfig.node.json                # Node-level TypeScript config
+├── eslint.config.js                  # ESLint rules
+├── postcss.config.js                 # PostCSS configuration
+├── components.json                   # Shadcn UI component registry
+│
+├── public/                           # Static public assets
+│   ├── favicon.ico
+│   ├── placeholder.svg
+│   └── robots.txt
+│
+├── src/                              # Frontend source (React / TypeScript)
+│   ├── main.tsx                      # Application bootstrap
+│   ├── App.tsx                       # Root component & router setup
+│   ├── index.css                     # Global styles
+│   ├── vite-env.d.ts                 # Vite type declarations
+│   │
+│   ├── pages/                        # Route-level page components
+│   │   ├── Index.tsx                 # Landing / home page
+│   │   ├── Dashboard.tsx             # Main dashboard
+│   │   ├── Analysis.tsx              # Domain analysis view
+│   │   ├── Discover.tsx              # Company discovery
+│   │   ├── Compare.tsx               # Side-by-side comparison
+│   │   ├── History.tsx               # Analysis history
+│   │   ├── Services.tsx              # Services overview
+│   │   ├── Onboarding.tsx            # User onboarding flow
+│   │   ├── Login.tsx                 # Authentication page
+│   │   └── NotFound.tsx              # 404 page
+│   │
+│   ├── components/                   # Reusable UI components
+│   │   ├── CommandPalette.tsx        # Global keyboard command palette
+│   │   ├── NavLink.tsx               # Navigation link wrapper
+│   │   ├── analysis/                 # Analysis-specific components
+│   │   │   ├── AgentAgreement.tsx
+│   │   │   ├── AgentDebate.tsx
+│   │   │   ├── ConfidenceEngine.tsx
+│   │   │   ├── EvidenceSection.tsx
+│   │   │   ├── ExplainableScoring.tsx
+│   │   │   ├── OutreachTabs.tsx
+│   │   │   ├── RiskOpportunityQuadrant.tsx
+│   │   │   ├── ScenarioSimulator.tsx
+│   │   │   └── ScoreGauge.tsx
+│   │   ├── discover/                 # Company discovery components
+│   │   │   ├── CompanyCard.tsx
+│   │   │   ├── CompanyResults.tsx
+│   │   │   └── LocationSearch.tsx
+│   │   ├── layout/                   # Layout & navigation
+│   │   │   └── Sidebar.tsx
+│   │   ├── services/                 # Services page sections
+│   │   │   ├── AboutSection.tsx
+│   │   │   ├── CoreServicesSection.tsx
+│   │   │   ├── HeroSection.tsx
+│   │   │   └── TechStackSection.tsx
+│   │   └── ui/                       # Shadcn UI primitives (accordion, button, card, …)
+│   │
+│   ├── contexts/                     # React context providers
+│   │   ├── AuthContext.tsx
+│   │   └── ThemeContext.tsx
+│   │
+│   ├── hooks/                        # Custom React hooks
+│   │   ├── use-mobile.tsx
+│   │   ├── use-toast.ts
+│   │   └── useDebounce.ts
+│   │
+│   ├── lib/                          # Frontend utilities & orchestration
+│   │   ├── agents.ts                 # Agent definitions (current)
+│   │   ├── agentsLegacy.ts           # Legacy agent definitions
+│   │   ├── memoryStore.ts            # Client-side memory store
+│   │   ├── orchestrator.ts           # Frontend orchestration logic
+│   │   ├── pdfExport.ts              # PDF report export helper
+│   │   ├── scenarioEngine.ts         # Scenario simulation engine
+│   │   └── utils.ts                  # General-purpose utilities
+│   │
+│   ├── types/                        # Shared TypeScript type definitions
+│   │   └── analysis.ts
+│   │
+│   └── test/                         # Frontend unit tests (Vitest)
+│       ├── agents.test.ts
+│       ├── alignmentIndex.test.ts
+│       ├── confidenceEngine.test.ts
+│       ├── example.test.ts
+│       ├── memoryStore.test.ts
+│       ├── orchestrator.test.ts
+│       ├── scenarioEngine.test.ts
+│       └── setup.ts
+│
+└── server/                           # Backend source (Node.js / Express / TypeScript)
+    ├── package.json                  # Backend dependencies & scripts
+    ├── tsconfig.json                 # Backend TypeScript config
+    ├── vercel.json                   # Vercel deployment config
+    └── src/
+        ├── index.ts                  # Express server entry point
+        ├── agents/                   # AI agent implementations
+        │   ├── debateAgent.ts        # Multi-agent debate logic
+        │   ├── financialAgent.ts     # Financial signal analysis
+        │   ├── marketAgent.ts        # Market & competitive analysis
+        │   ├── researchAgent.ts      # Real-time web research (Tavily)
+        │   ├── signalAgent.ts        # Raw signal structuring
+        │   ├── technicalAgent.ts     # Service-to-signal mapping
+        │   └── verdictAgent.ts       # Final recommendation engine
+        ├── lib/                      # Backend shared utilities
+        │   ├── analysisCache.ts      # In-memory result caching
+        │   ├── memoryStore.ts        # Server-side memory store
+        │   ├── orchestrator.ts       # Agent pipeline orchestration
+        │   └── utils.ts              # Backend utilities
+        ├── memory/
+        │   └── executionTrace.jsonl  # JSONL audit trail of analyses
+        ├── routes/
+        │   └── analyze.ts            # POST /analyze API route
+        ├── scoring/
+        │   └── enterpriseConstraint.ts  # Mega-enterprise detection & scoring
+        ├── services/
+        │   ├── enterpriseIsolation.ts   # Enterprise isolation logic
+        │   ├── searchProvider.ts        # Tavily / search abstraction
+        │   └── signalExtractor.ts       # Signal extraction from raw text
+        └── types/
+            └── analysis.ts           # Backend TypeScript types
+```
+
+---
+
 ## 🧬 Core Intelligence Features
 
 - **Dynamic Scale Detection**: Real-time probing of company size and internal capability maturity.
